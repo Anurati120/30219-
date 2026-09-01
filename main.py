@@ -103,4 +103,222 @@ def run_game():
                 gtr: { color: 0x0055ff, maxSpeed: 2.2, accel: 0.015, handling: 0.3, nitroMax: 3.0 },
                 svj: { color: 0xffaa00, maxSpeed: 2.5, accel: 0.012, handling: 0.25, nitroMax: 3.3 },
                 porsche: { color: 0xffffff, maxSpeed: 2.1, accel: 0.018, handling: 0.4, nitroMax: 2.8 },
-                ferrari: { color: 0xff0000, maxSpeed:
+                ferrari: { color: 0xff0000, maxSpeed: 2.3, accel: 0.014, handling: 0.3, nitroMax: 3.1 },
+                mclaren: { color: 0xff5500, maxSpeed: 2.4, accel: 0.013, handling: 0.28, nitroMax: 3.5 },
+                bugatti: { color: 0x000033, maxSpeed: 2.8, accel: 0.008, handling: 0.18, nitroMax: 3.8 },
+                aston: { color: 0x004411, maxSpeed: 2.1, accel: 0.015, handling: 0.35, nitroMax: 2.9 }
+            };
+
+            let currentCarType = "gtr";
+            let playerSpeed = 0;
+            let currentNitro = 100;
+            let progressDist = 10000;
+            let isFinished = false;
+
+            // === 플레이어 차량 생성 (3D 블록 조합) ===
+            const playerCar = new THREE.Group();
+            
+            // 차체 (Chassis)
+            const bodyGeo = new THREE.BoxGeometry(4, 2, 9);
+            const bodyMat = new THREE.MeshLambertMaterial({ color: carSpecs[currentCarType].color });
+            const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+            bodyMesh.position.y = 1.5;
+            playerCar.add(bodyMesh);
+            
+            // 조종석 (Cabin)
+            const cabinGeo = new THREE.BoxGeometry(3, 1.5, 4);
+            const cabinMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+            const cabinMesh = new THREE.Mesh(cabinGeo, cabinMat);
+            cabinMesh.position.set(0, 3, -0.5);
+            playerCar.add(cabinMesh);
+
+            scene.add(playerCar);
+
+            // === 트랙 및 환경 생성 ===
+            // 도로
+            const roadGeo = new THREE.PlaneGeometry(60, 20000);
+            const roadMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.rotation.x = -Math.PI / 2;
+            road.position.z = -9000;
+            scene.add(road);
+
+            // 중앙선 (Dashed line 효과를 위해 여러 개의 Plane 사용)
+            const lines = new THREE.Group();
+            for(let i=0; i<400; i++) {
+                const lineGeo = new THREE.PlaneGeometry(1, 10);
+                const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const line = new THREE.Mesh(lineGeo, lineMat);
+                line.rotation.x = -Math.PI / 2;
+                line.position.set(0, 0.1, -i * 50);
+                lines.add(line);
+            }
+            scene.add(lines);
+
+            // 도심 빌딩 (배경 장식)
+            const buildings = new THREE.Group();
+            const buildGeo = new THREE.BoxGeometry(20, 100, 20);
+            for(let i=0; i<100; i++) {
+                const buildMat = new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff });
+                const b1 = new THREE.Mesh(buildGeo, buildMat);
+                b1.position.set(50 + Math.random()*20, 50, -Math.random()*10000);
+                const b2 = new THREE.Mesh(buildGeo, buildMat);
+                b2.position.set(-50 - Math.random()*20, 50, -Math.random()*10000);
+                buildings.add(b1);
+                buildings.add(b2);
+            }
+            scene.add(buildings);
+
+            // 결승선
+            const finishGeo = new THREE.PlaneGeometry(60, 5);
+            const finishMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            const finishLine = new THREE.Mesh(finishGeo, finishMat);
+            finishLine.rotation.x = -Math.PI / 2;
+            finishLine.position.set(0, 0.2, -10000);
+            scene.add(finishLine);
+
+            // 장애물(트래픽 차량)
+            const traffic = [];
+            const trafficGeo = new THREE.BoxGeometry(4, 2.5, 9);
+            const trafficMat = new THREE.MeshLambertMaterial({ color: 0xaa0000 });
+            for(let i=0; i<80; i++) {
+                const tr = new THREE.Mesh(trafficGeo, trafficMat);
+                tr.position.set((Math.random() - 0.5) * 50, 1.25, -500 - (Math.random() * 9000));
+                scene.add(tr);
+                traffic.push(tr);
+            }
+
+            // === 입력 처리 (WASD) ===
+            const keys = { w: false, a: false, s: false, d: false, space: false };
+            window.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                if (key === 'w') keys.w = true;
+                if (key === 'a') keys.a = true;
+                if (key === 's') keys.s = true;
+                if (key === 'd') keys.d = true;
+                if (e.code === 'Space') keys.space = true;
+            });
+            window.addEventListener('keyup', (e) => {
+                const key = e.key.toLowerCase();
+                if (key === 'w') keys.w = false;
+                if (key === 'a') keys.a = false;
+                if (key === 's') keys.s = false;
+                if (key === 'd') keys.d = false;
+                if (e.code === 'Space') keys.space = false;
+            });
+
+            window.changeCar = function() {
+                currentCarType = document.getElementById("carSelect").value;
+                bodyMesh.material.color.setHex(carSpecs[currentCarType].color);
+            };
+
+            window.resetGame = function() {
+                playerCar.position.set(0, 0, 0);
+                playerSpeed = 0;
+                currentNitro = 100;
+                progressDist = 10000;
+                isFinished = false;
+                document.getElementById("message").style.display = "none";
+                document.getElementById("restartBtn").style.display = "none";
+            };
+
+            // === 게임 루프 ===
+            function animate() {
+                requestAnimationFrame(animate);
+
+                if (!isFinished) {
+                    let spec = carSpecs[currentCarType];
+                    let currentMax = spec.maxSpeed;
+
+                    // 부스터 (SPACE)
+                    if (keys.space && currentNitro > 0) {
+                        currentMax = spec.nitroMax;
+                        currentNitro -= 0.5;
+                        camera.fov = 85; // 부스터 시 시야각 넓어짐 (속도감 연출)
+                    } else {
+                        if (currentNitro < 100) currentNitro += 0.1;
+                        camera.fov = 75;
+                    }
+                    camera.updateProjectionMatrix();
+
+                    // 가속 & 감속 (W, S)
+                    if (keys.w) {
+                        playerSpeed += spec.accel;
+                        if (playerSpeed > currentMax) playerSpeed = currentMax;
+                    } else if (keys.s) {
+                        playerSpeed -= 0.05;
+                    } else {
+                        playerSpeed -= 0.01; // 자연 감속
+                    }
+                    if (playerSpeed < 0) playerSpeed = 0;
+
+                    // 좌우 조향 (A, D) - 속도에 비례해서 꺾임
+                    if (keys.a && playerCar.position.x > -28) {
+                        playerCar.position.x -= spec.handling * (playerSpeed/1.5);
+                        playerCar.rotation.y = 0.1;
+                    } else if (keys.d && playerCar.position.x < 28) {
+                        playerCar.position.x += spec.handling * (playerSpeed/1.5);
+                        playerCar.rotation.y = -0.1;
+                    } else {
+                        playerCar.rotation.y = 0;
+                    }
+
+                    // 전진
+                    playerCar.position.z -= playerSpeed;
+                    progressDist = 10000 + playerCar.position.z;
+
+                    // 충돌 감지 (벽 및 트래픽)
+                    // 1. 코스 이탈 페널티
+                    if (playerCar.position.x <= -28 || playerCar.position.x >= 28) {
+                        playerSpeed *= 0.8; // 속도 급감
+                    }
+                    // 2. 트래픽 차량 충돌 페널티
+                    for(let i=0; i<traffic.length; i++) {
+                        let tr = traffic[i];
+                        if (Math.abs(playerCar.position.z - tr.position.z) < 9 && 
+                            Math.abs(playerCar.position.x - tr.position.x) < 4) {
+                            playerSpeed *= 0.4; // 강하게 속도 감소 (카트라이더 방식 페널티)
+                            playerCar.position.z += 2; // 살짝 튕겨나감
+                        }
+                    }
+
+                    // 완주 체크
+                    if (progressDist <= 0) {
+                        isFinished = true;
+                        document.getElementById("message").style.display = "block";
+                        document.getElementById("restartBtn").style.display = "block";
+                    }
+
+                    // 카메라 추적 (3인칭 백뷰)
+                    camera.position.x = playerCar.position.x;
+                    camera.position.y = playerCar.position.y + 7;
+                    camera.position.z = playerCar.position.z + 20;
+                    camera.lookAt(playerCar.position.x, playerCar.position.y, playerCar.position.z - 10);
+
+                    // UI 업데이트
+                    document.getElementById("speedUi").innerText = Math.floor(playerSpeed * 120);
+                    document.getElementById("nitroUi").innerText = Math.floor(currentNitro);
+                    document.getElementById("distUi").innerText = Math.max(0, Math.floor(progressDist));
+                }
+
+                renderer.render(scene, camera);
+            }
+
+            // 반응형 리사이징
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            animate();
+        </script>
+    </body>
+    </html>
+    """
+
+    # height를 넉넉하게 주어 전체화면 느낌을 살림
+    st.components.v1.html(game_html, height=800, scrolling=False)
+
+if __name__ == "__main__":
+    run_game()
