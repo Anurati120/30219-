@@ -14,398 +14,309 @@ def run_game():
         <meta charset="UTF-8">
         <title>3D Supercar World Racing</title>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
-            body { margin: 0; overflow: hidden; background-color: #0c0e14; color: white; font-family: 'Montserrat', sans-serif; }
+            body { margin: 0; overflow: hidden; background-color: #050510; color: white; font-family: 'Orbitron', sans-serif; user-select: none; }
             
-            /* === UI/UX 대폭 개선 (1000% 멋짐) === */
+            /* === UI/UX Glassmorphism 디자인 === */
             #ui-layer {
                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
                 pointer-events: none; display: flex; flex-direction: column;
             }
 
             .main-header {
-                background: rgba(12, 14, 20, 0.85); padding: 15px 40px; 
-                border-bottom: 3px solid #ffcc00; 
+                background: rgba(10, 10, 25, 0.6); padding: 15px 40px; 
+                border-bottom: 2px solid #ff2a6d; 
                 display: flex; justify-content: space-between; align-items: center;
-                pointer-events: auto; backdrop-filter: blur(5px);
-                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.6);
+                pointer-events: auto; backdrop-filter: blur(10px);
+                box-shadow: 0 5px 30px rgba(255, 42, 109, 0.4);
             }
-            .main-title { font-size: 28px; font-weight: 900; color: #ffcc00; text-transform: uppercase; letter-spacing: 2px; }
+            .main-title { font-size: 28px; font-weight: 900; color: #05d9e8; text-shadow: 0 0 10px #05d9e8; letter-spacing: 3px; }
             .car-picker-container { display: flex; align-items: center; gap: 15px; }
-            select { background: #1a1e28; color: #fff; padding: 10px 15px; border: 1px solid #444; border-radius: 8px; font-size: 16px; font-family: inherit; cursor: pointer; }
+            
+            select { 
+                background: rgba(5, 217, 232, 0.1); color: #05d9e8; padding: 10px 20px; 
+                border: 1px solid #05d9e8; border-radius: 8px; font-size: 16px; 
+                font-family: inherit; font-weight: bold; cursor: pointer; outline: none;
+                box-shadow: 0 0 10px rgba(5, 217, 232, 0.3); transition: all 0.3s ease;
+            }
+            select:hover { background: rgba(5, 217, 232, 0.3); }
+            option { background: #050510; color: white; }
             
             .hud-container {
-                position: absolute; bottom: 30px; left: 30px;
-                display: flex; gap: 20px;
-                pointer-events: auto;
+                position: absolute; bottom: 40px; left: 40px;
+                display: flex; gap: 25px; pointer-events: auto;
             }
             .hud-panel {
-                background: rgba(26, 30, 40, 0.8); padding: 15px; 
-                border-radius: 12px; border: 1px solid #333;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-                backdrop-filter: blur(5px);
+                background: rgba(10, 10, 25, 0.6); padding: 20px; 
+                border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+                position: relative; overflow: hidden;
             }
-            .hud-label { font-size: 12px; text-transform: uppercase; color: #aaa; margin-bottom: 5px; }
-            .hud-value-container { display: flex; align-items: flex-end; gap: 5px; }
-            .hud-value { font-size: 36px; font-weight: 900; color: #ffcc00; }
-            .hud-unit { font-size: 14px; font-weight: 700; color: #aaa; }
+            .hud-panel::before {
+                content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+                background: linear-gradient(90deg, #ff2a6d, #01ffe5);
+            }
+            
+            .hud-label { font-size: 12px; letter-spacing: 2px; color: #8892b0; margin-bottom: 8px; }
+            .hud-value-container { display: flex; align-items: baseline; gap: 8px; }
+            .hud-value { font-size: 42px; font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
+            .hud-unit { font-size: 16px; font-weight: 700; color: #01ffe5; }
 
             #nitro-gauge {
-                height: 10px; background: #222; border-radius: 5px; overflow: hidden;
-                margin-top: 10px; border: 1px solid #333;
+                height: 14px; background: rgba(255,255,255,0.1); border-radius: 7px; overflow: hidden;
+                margin-top: 15px; border: 1px solid rgba(255,255,255,0.2); width: 250px;
             }
             #nitro-bar {
-                height: 100%; width: 100%; background: #00ffcc;
-                transition: width 0.1s linear, background 0.3s;
-                box-shadow: 0 0 10px #00ffcc;
+                height: 100%; width: 100%; background: linear-gradient(90deg, #01ffe5, #ff2a6d);
+                transition: width 0.1s linear; box-shadow: 0 0 15px #ff2a6d;
             }
 
-            .right-hud-panel {
-                position: absolute; top: 100px; right: 30px;
-                pointer-events: auto;
-            }
+            .right-hud-panel { position: absolute; bottom: 40px; right: 40px; pointer-events: auto; }
 
-            .controls-panel {
-                background: rgba(26, 30, 40, 0.8); padding: 15px; 
-                border-radius: 12px; border: 1px solid #333;
-                backdrop-filter: blur(5px);
-                font-size: 14px; text-align: center;
-                display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-            }
+            .controls-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;}
             .key-box {
-                width: 40px; height: 40px; background: #333; 
-                border: 1px solid #555; border-radius: 6px;
+                width: 45px; height: 45px; background: rgba(255,255,255,0.05); 
+                border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
                 display: flex; align-items: center; justify-content: center;
-                font-weight: 700;
+                font-weight: 700; font-size: 18px; color: #8892b0; transition: all 0.1s;
             }
-            .w-key { grid-column: 2 / 3; }
-            .s-key { grid-column: 2 / 3; grid-row: 2 / 3; }
-            .a-key { grid-column: 1 / 2; grid-row: 2 / 3; }
-            .d-key { grid-column: 3 / 4; grid-row: 2 / 3; }
-            .space-key { grid-column: 1 / 4; grid-row: 3 / 4; width: 100%; height: 30px; }
+            .w-key { grid-column: 2 / 3; } .s-key { grid-column: 2 / 3; grid-row: 2 / 3; }
+            .a-key { grid-column: 1 / 2; grid-row: 2 / 3; } .d-key { grid-column: 3 / 4; grid-row: 2 / 3; }
+            .space-key { grid-column: 1 / 4; grid-row: 3 / 4; width: 100%; height: 35px; font-size: 14px; letter-spacing: 2px;}
+
+            /* 키 눌림 효과 적용 클래스 */
+            .key-active { background: #ff2a6d !important; color: white !important; box-shadow: 0 0 15px #ff2a6d, inset 0 0 10px rgba(0,0,0,0.5) !important; border-color: #ff2a6d !important; transform: translateY(2px); }
+            .space-active { background: #01ffe5 !important; color: black !important; box-shadow: 0 0 15px #01ffe5 !important; border-color: #01ffe5 !important; transform: translateY(2px); }
 
             #finish-message {
-                position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-                font-size: 80px; font-weight: 900; text-transform: uppercase; letter-spacing: 5px;
-                background: linear-gradient(90deg, #ffcc00, #ff00cc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-                text-shadow: 0 0 30px rgba(255, 204, 0, 0.8); display: none; text-align: center;
+                position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
+                font-size: 100px; font-weight: 900; letter-spacing: 10px;
+                background: linear-gradient(90deg, #ff2a6d, #01ffe5); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                text-shadow: 0 0 50px rgba(255, 42, 109, 0.5); display: none; text-align: center;
             }
 
             #restartBtn {
-                position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-                padding: 18px 45px; font-size: 22px; font-weight: 900; text-transform: uppercase;
-                background: #ffcc00; color: #000; border: none; border-radius: 12px; cursor: pointer; pointer-events: auto;
-                box-shadow: 0 0 25px rgba(255, 204, 0, 0.7); display: none;
-                transition: transform 0.1s, box-shadow 0.2s;
+                position: absolute; bottom: 30%; left: 50%; transform: translateX(-50%);
+                padding: 20px 50px; font-size: 24px; font-weight: 900; font-family: 'Orbitron', sans-serif;
+                background: #01ffe5; color: #050510; border: none; border-radius: 12px; cursor: pointer; pointer-events: auto;
+                box-shadow: 0 0 30px rgba(1, 255, 229, 0.6); display: none; transition: all 0.2s;
             }
-            #restartBtn:hover { transform: translateX(-50%) scale(1.05); box-shadow: 0 0 35px rgba(255, 204, 0, 0.9); }
-
+            #restartBtn:hover { background: #ff2a6d; color: white; box-shadow: 0 0 40px rgba(255, 42, 109, 0.8); scale: 1.05; }
         </style>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     </head>
     <body>
         <div id="ui-layer">
             <header class="main-header">
-                <div class="main-title">3D Supercar Racing</div>
+                <div class="main-title">NEON RACER : 2077</div>
                 <div class="car-picker-container">
-                    <label>SELECTED CAR:</label>
+                    <label style="font-weight:700; color:#8892b0; letter-spacing:1px;">GARAGE :</label>
                     <select id="carSelect" onchange="changeCar()">
                         <option value="gtr">Nissan GT-R NISMO</option>
                         <option value="svj">Lambo Aventador SVJ</option>
                         <option value="porsche">Porsche 911 GT3</option>
-                        <option value="ferrari">Ferrari 488 Pista</option>
-                        <option value="mclaren">McLaren 720S</option>
-                        <option value="bugatti">Bugatti Chiron</option>
-                        <option value="aston">Aston Martin Vantage</option>
                     </select>
                 </div>
             </header>
             
             <div class="hud-container">
                 <div class="hud-panel">
-                    <div class="hud-label">SPEED</div>
+                    <div class="hud-label">CURRENT SPEED</div>
                     <div class="hud-value-container">
                         <div class="hud-value" id="speedUi">0</div>
-                        <div class="hud-unit">km/h</div>
+                        <div class="hud-unit">KM/H</div>
                     </div>
                 </div>
-                <div class="hud-panel" style="flex: 1; border-left: 4px solid #00ffcc;">
-                    <div class="hud-label">NITRO BOOST</div>
+                <div class="hud-panel" style="width: 250px;">
+                    <div class="hud-label">NITROUS SYSTEM</div>
                     <div id="nitro-gauge"><div id="nitro-bar"></div></div>
                 </div>
                 <div class="hud-panel">
-                    <div class="hud-label">DISTANCE TO FINISH</div>
+                    <div class="hud-label">DISTANCE REMAINING</div>
                     <div class="hud-value-container">
-                        <div class="hud-value" id="distUi">10000</div>
-                        <div class="hud-unit">m</div>
+                        <div class="hud-value" id="distUi">3000</div>
+                        <div class="hud-unit">M</div>
                     </div>
                 </div>
             </div>
 
             <div class="right-hud-panel hud-panel">
-                <div class="hud-label">CONTROLS</div>
+                <div class="hud-label" style="text-align: center;">DRIVE SYSTEM</div>
                 <div class="controls-panel">
                     <div class="key-box w-key">W</div>
                     <div class="key-box a-key">A</div>
                     <div class="key-box s-key">S</div>
                     <div class="key-box d-key">D</div>
-                    <div class="key-box space-key">SPACE</div>
+                    <div class="key-box space-key">SPACE (BOOST)</div>
                 </div>
             </div>
 
-            <div id="finish-message">FINISH!</div>
-            <button id="restartBtn" onclick="resetGame()">🔄 RESTART RACE</button>
+            <div id="finish-message">RACE CLEARED</div>
+            <button id="restartBtn" onclick="resetGame()">INITIALIZE RESTART</button>
         </div>
 
         <script>
-            // === Three.js 씬 셋업 (GTA & 카트라이더 융합 배경) ===
+            // === 1. 환상적인 Synthwave 씬 셋업 ===
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x1a2133); // 밤하늘 도심 분위기
-            scene.fog = new THREE.Fog(0x1a2133, 150, 1000); // 도심 안개 효과
+            scene.background = new THREE.Color(0x050510);
+            scene.fog = new THREE.FogExp2(0x050510, 0.003); // 원근감을 주는 안개
 
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1500);
+            const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 2000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            // 조명 (밤 도심 조명)
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            // 조명 세팅 (네온 감성)
+            const ambientLight = new THREE.AmbientLight(0x222244, 1.5);
             scene.add(ambientLight);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-            dirLight.position.set(100, 200, 50);
-            scene.add(dirLight);
+            const spotLight = new THREE.SpotLight(0x01ffe5, 2);
+            spotLight.position.set(0, 100, 50);
+            spotLight.castShadow = true;
+            scene.add(spotLight);
+            const pinkLight = new THREE.PointLight(0xff2a6d, 1, 100);
+            scene.add(pinkLight);
 
-            // === 정교한 3D 차량 모델링 (GTR NISMO 특징 반영) ===
+            // === 2. 환경 및 트랙 (네온 그리드 바닥) ===
+            const gridHelper = new THREE.GridHelper(400, 80, 0xff2a6d, 0x222244);
+            gridHelper.position.y = 0;
+            scene.add(gridHelper);
+            
+            // 아스팔트 도로 
+            const roadGeo = new THREE.PlaneGeometry(60, 4000);
+            const roadMat = new THREE.MeshPhongMaterial({ color: 0x0a0a0a });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.rotation.x = -Math.PI / 2;
+            road.position.z = -1500;
+            road.receiveShadow = true;
+            scene.add(road);
+
+            // 가로등/네온 기둥 추가
+            const pillars = new THREE.Group();
+            for(let i=0; i<50; i++) {
+                const pGeo = new THREE.CylinderGeometry(0.5, 0.5, 20, 8);
+                const pMat = new THREE.MeshBasicMaterial({ color: i%2===0 ? 0x01ffe5 : 0xff2a6d });
+                const p1 = new THREE.Mesh(pGeo, pMat);
+                p1.position.set(-32, 10, -i*80);
+                const p2 = new THREE.Mesh(pGeo, pMat);
+                p2.position.set(32, 10, -i*80);
+                pillars.add(p1); pillars.add(p2);
+            }
+            scene.add(pillars);
+
+            // 결승선
+            const finishGeo = new THREE.BoxGeometry(60, 2, 2);
+            const finishMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const finishLine = new THREE.Mesh(finishGeo, finishMat);
+            finishLine.position.set(0, 1, -3000);
+            scene.add(finishLine);
+
+            // === 3. 정교화된 차량 시스템 ===
             const playerCarModel = new THREE.Group();
+            let wheels = []; // 바퀴 회전 애니메이션을 위한 배열
 
             const carSpecs = {
-                gtr: { color: 0xffffff, roofColor: 0x111111, accentColor: 0xdd0000, maxSpeed: 2.3, accel: 0.016, handling: 0.35, nitroMax: 3.1 },
-                svj: { color: 0xffaa00, roofColor: 0x111111, accentColor: 0xff4400, maxSpeed: 2.6, accel: 0.013, handling: 0.28, nitroMax: 3.4 },
-                porsche: { color: 0xffffff, roofColor: 0x111111, accentColor: 0xff0000, maxSpeed: 2.2, accel: 0.019, handling: 0.45, nitroMax: 2.9 },
-                ferrari: { color: 0xff0000, roofColor: 0x111111, accentColor: 0x000000, maxSpeed: 2.4, accel: 0.015, handling: 0.38, nitroMax: 3.2 },
-                mclaren: { color: 0xff7700, roofColor: 0x111111, accentColor: 0xffffff, maxSpeed: 2.5, accel: 0.014, handling: 0.32, nitroMax: 3.6 },
-                bugatti: { color: 0x000033, roofColor: 0x000011, accentColor: 0x55ccff, maxSpeed: 2.9, accel: 0.009, handling: 0.20, nitroMax: 3.9 },
-                aston: { color: 0x004411, roofColor: 0x111111, accentColor: 0xffffff, maxSpeed: 2.2, accel: 0.016, handling: 0.4, nitroMax: 3.0 }
+                gtr: { color: 0xffffff, accent: 0xff0000, maxSpeed: 2.8, accel: 0.02, handling: 0.4, nitroMax: 4.0 },
+                svj: { color: 0xffaa00, accent: 0x000000, maxSpeed: 3.1, accel: 0.015, handling: 0.35, nitroMax: 4.5 },
+                porsche: { color: 0x22aa33, accent: 0xffffff, maxSpeed: 2.7, accel: 0.025, handling: 0.5, nitroMax: 3.8 }
             };
 
             let currentCarType = "gtr";
             let playerSpeed = 0;
             let currentNitro = 100;
-            let progressDist = 10000;
+            let progressDist = 3000;
             let isFinished = false;
 
-            // 정교한 기하학적 블록으로 GTR NISMO 모델링 구축
             function buildCarModel(carType) {
-                // 기존 모델 초기화
-                while(playerCarModel.children.length > 0){ 
-                    playerCarModel.remove(playerCarModel.children[0]); 
-                }
-
+                while(playerCarModel.children.length > 0) { playerCarModel.remove(playerCarModel.children[0]); }
+                wheels = [];
                 const spec = carSpecs[carType];
 
-                // === 차체 구축 ===
-                // 메인 바디
-                const bodyGeo = new THREE.BoxGeometry(4, 2, 9);
-                const bodyMat = new THREE.MeshLambertMaterial({ color: spec.color });
-                const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-                bodyMesh.position.y = 1.5;
+                // 바디
+                const bodyMat = new THREE.MeshPhongMaterial({ color: spec.color, shininess: 100 });
+                const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.2, 9), bodyMat);
+                bodyMesh.position.y = 1.2;
+                bodyMesh.castShadow = true;
                 playerCarModel.add(bodyMesh);
 
-                // 프론트 노즈 (GTR의 특징적인 그릴 형태)
-                const frontNoseGeo = new THREE.BoxGeometry(4, 1.5, 3);
-                const frontNoseMesh = new THREE.Mesh(frontNoseGeo, bodyMat);
-                frontNoseMesh.position.set(0, 1.25, -4.5);
-                playerCarModel.add(frontNoseMesh);
-
-                // 리어 바디
-                const rearBodyGeo = new THREE.BoxGeometry(4, 1.8, 3);
-                const rearBodyMesh = new THREE.Mesh(rearBodyGeo, bodyMat);
-                rearBodyMesh.position.set(0, 1.4, 4.5);
-                playerCarModel.add(rearBodyMesh);
-
-                // 조종석 (Cabin) & 검은색 루프 (NISMO)
-                const cabinGeo = new THREE.BoxGeometry(3.5, 1.8, 4.5);
-                const cabinMat = new THREE.MeshLambertMaterial({ color: 0x050505 }); // 유리
-                const cabinMesh = new THREE.Mesh(cabinGeo, cabinMat);
-                cabinMesh.position.set(0, 3, -1);
+                // 루프(캐빈)
+                const cabinMat = new THREE.MeshPhongMaterial({ color: 0x111111, shininess: 150 });
+                const cabinMesh = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.0, 4.5), cabinMat);
+                cabinMesh.position.set(0, 2.3, -0.5);
                 playerCarModel.add(cabinMesh);
 
-                const roofGeo = new THREE.BoxGeometry(3.6, 0.2, 4.6);
-                const roofMat = new THREE.MeshLambertMaterial({ color: spec.roofColor });
-                const roofMesh = new THREE.Mesh(roofGeo, roofMat);
-                roofMesh.position.set(0, 3.9, -1);
-                playerCarModel.add(roofMesh);
-
-                // === NISMO 특징 구현 ===
-                // 1. 대형 리어 윙 (NISMO 대형 탄소 섬유 스포일러)
-                const wingBladeGeo = new THREE.BoxGeometry(4.8, 0.1, 1.8);
-                const wingMat = new THREE.MeshLambertMaterial({ color: spec.roofColor });
-                const wingBlade = new THREE.Mesh(wingBladeGeo, wingMat);
-                wingBlade.position.set(0, 4.5, 4);
-                playerCarModel.add(wingBlade);
+                // 스포일러
+                const wingMesh = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.2, 1.2), new THREE.MeshPhongMaterial({ color: spec.accent }));
+                wingMesh.position.set(0, 2.5, 4);
+                playerCarModel.add(wingMesh);
                 
-                // 윙 지지대
-                const wingStandGeo = new THREE.BoxGeometry(0.1, 1, 0.1);
-                const wingStand1 = new THREE.Mesh(wingStandGeo, wingMat);
-                wingStand1.position.set(1.5, 4, 3.8);
-                const wingStand2 = new THREE.Mesh(wingStandGeo, wingMat);
-                wingStand2.position.set(-1.5, 4, 3.8);
-                playerCarModel.add(wingStand1);
-                playerCarModel.add(wingStand2);
+                // 후미등 (네온 빛)
+                const tailLightGeo = new THREE.BoxGeometry(1.2, 0.4, 0.1);
+                const tailLightMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+                const tl1 = new THREE.Mesh(tailLightGeo, tailLightMat); tl1.position.set(1.4, 1.4, 4.55);
+                const tl2 = new THREE.Mesh(tailLightGeo, tailLightMat); tl2.position.set(-1.4, 1.4, 4.55);
+                playerCarModel.add(tl1); playerCarModel.add(tl2);
 
-                // 2. 프론트 에어 덕트 & 빨간색 NISMO 액센트 라인
-                const accentGeo = new THREE.BoxGeometry(4.1, 0.1, 0.1);
-                const accentMat = new THREE.MeshLambertMaterial({ color: spec.accentColor });
-                const frontAccent = new THREE.Mesh(accentGeo, accentMat);
-                frontAccent.position.set(0, 0.5, -5.9);
-                playerCarModel.add(frontAccent);
-
-                // 3. 헤드라이트 (NISMO LED)
-                const headGeo = new THREE.BoxGeometry(0.8, 0.3, 0.1);
-                const headMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                const head1 = new THREE.Mesh(headGeo, headMat);
-                head1.position.set(1.2, 1.8, -5.9);
-                const head2 = new THREE.Mesh(headGeo, headMat);
-                head2.position.set(-1.2, 1.8, -5.9);
-                playerCarModel.add(head1);
-                playerCarModel.add(head2);
-
-                // === 휠 & 타이어 ===
-                const wheelGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.8, 16);
-                const wheelMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
-                const wheelPositions = [
-                    { x: -2.1, y: 0.8, z: -3 },
-                    { x: 2.1, y: 0.8, z: -3 },
-                    { x: -2.1, y: 0.8, z: 3 },
-                    { x: 2.1, y: 0.8, z: 3 }
-                ];
-                wheelPositions.forEach(pos => {
+                // 바퀴 생성 및 배열에 저장 (회전을 위해)
+                const wheelGeo = new THREE.CylinderGeometry(0.8, 0.8, 1, 16);
+                const wheelMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
+                const wheelPos = [ {x: -2.3, z: -2.8}, {x: 2.3, z: -2.8}, {x: -2.3, z: 2.8}, {x: 2.3, z: 2.8} ];
+                
+                wheelPos.forEach(pos => {
                     const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-                    wheel.position.set(pos.x, pos.y, pos.z);
+                    wheel.position.set(pos.x, 0.8, pos.z);
                     wheel.rotation.z = Math.PI / 2;
                     playerCarModel.add(wheel);
+                    wheels.push(wheel);
                 });
             }
 
             buildCarModel(currentCarType);
             scene.add(playerCarModel);
 
-            // === 트랙 및 환경 생성 ===
-            // 도로
-            const roadGeo = new THREE.PlaneGeometry(80, 20000);
-            const roadMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-            const road = new THREE.Mesh(roadGeo, roadMat);
-            road.rotation.x = -Math.PI / 2;
-            road.position.z = -9000;
-            scene.add(road);
-
-            // 도로 가장자리 네온 라인 (카트라이더 느낌)
-            const neonGeo = new THREE.PlaneGeometry(1, 20000);
-            const neonMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-            const neon1 = new THREE.Mesh(neonGeo, neonMat);
-            neon1.rotation.x = -Math.PI / 2;
-            neon1.position.set(-39, 0.1, -9000);
-            const neon2 = new THREE.Mesh(neonGeo, neonMat);
-            neon2.rotation.x = -Math.PI / 2;
-            neon2.position.set(39, 0.1, -9000);
-            scene.add(neon1);
-            scene.add(neon2);
-
-            // 중앙선
-            const lines = new THREE.Group();
-            for(let i=0; i<400; i++) {
-                const lineGeo = new THREE.PlaneGeometry(1.5, 12);
-                const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                const line = new THREE.Mesh(lineGeo, lineMat);
-                line.rotation.x = -Math.PI / 2;
-                line.position.set(0, 0.1, -i * 50);
-                lines.add(line);
-            }
-            scene.add(lines);
-
-            // 도심 빌딩 (GTA 느낌 배경)
-            const buildings = new THREE.Group();
-            const buildGeo = new THREE.BoxGeometry(20, 100, 20);
-            for(let i=0; i<100; i++) {
-                const buildMat = new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff });
-                const b1 = new THREE.Mesh(buildGeo, buildMat);
-                b1.position.set(60 + Math.random()*20, 50, -Math.random()*10000);
-                const b2 = new THREE.Mesh(buildGeo, buildMat);
-                b2.position.set(-60 - Math.random()*20, 50, -Math.random()*10000);
-                buildings.add(b1);
-                buildings.add(b2);
-            }
-            scene.add(buildings);
-
-            // 결승선
-            const finishGeo = new THREE.PlaneGeometry(80, 10);
-            const finishMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
-            const finishLine = new THREE.Mesh(finishGeo, finishMat);
-            finishLine.rotation.x = -Math.PI / 2;
-            finishLine.position.set(0, 0.2, -10000);
-            scene.add(finishLine);
-
-            // 장애물(트래픽 차량)
-            const traffic = [];
-            const trafficGeo = new THREE.BoxGeometry(4.5, 2.8, 10);
-            const trafficMat = new THREE.MeshLambertMaterial({ color: 0xaa0000 });
-            for(let i=0; i<80; i++) {
-                const tr = new THREE.Mesh(trafficGeo, trafficMat);
-                tr.position.set((Math.random() - 0.5) * 70, 1.4, -500 - (Math.random() * 9500));
-                scene.add(tr);
-                traffic.push(tr);
-            }
-
-            // === 입력 처리 (WASD - 에러 없이 정교하게) ===
+            // === 4. 조작 및 버그 픽스 시스템 ===
             const keys = { w: false, a: false, s: false, d: false, space: false };
+            
             window.addEventListener('keydown', (e) => {
                 const key = e.key.toLowerCase();
                 if (keys.hasOwnProperty(key)) keys[key] = true;
                 if (e.code === 'Space') keys.space = true;
                 
-                // UI Key Highlight
-                if (key === 'w' || key === 's' || key === 'a' || key === 'd') {
-                    document.querySelector(`.${key}-key`).style.background = '#ffcc00';
-                    document.querySelector(`.${key}-key`).style.color = '#000';
-                }
-                if (e.code === 'Space') {
-                    document.querySelector('.space-key').style.background = '#00ffcc';
-                    document.querySelector('.space-key').style.color = '#000';
-                }
+                // UI 하이라이트
+                if (['w', 'a', 's', 'd'].includes(key)) document.querySelector(`.${key}-key`).classList.add('key-active');
+                if (e.code === 'Space') document.querySelector('.space-key').classList.add('space-active');
             });
+
             window.addEventListener('keyup', (e) => {
                 const key = e.key.toLowerCase();
                 if (keys.hasOwnProperty(key)) keys[key] = false;
                 if (e.code === 'Space') keys.space = false;
                 
-                // UI Key Unhighlight
-                if (key === 'w' || key === 's' || key === 'a' || key === 'd') {
-                    document.querySelector(`.${key}-key`).style.background = '';
-                    document.querySelector(`.${key}-key`).style.color = '';
-                }
-                if (e.code === 'Space') {
-                    document.querySelector('.space-key').style.background = '';
-                    document.querySelector('.space-key').style.color = '';
-                }
+                // UI 하이라이트 해제
+                if (['w', 'a', 's', 'd'].includes(key)) document.querySelector(`.${key}-key`).classList.remove('key-active');
+                if (e.code === 'Space') document.querySelector('.space-key').classList.remove('space-active');
             });
 
             window.changeCar = function() {
                 currentCarType = document.getElementById("carSelect").value;
                 buildCarModel(currentCarType);
+                // ⚠️ 핵심 버그 수정: 차종 선택 후 포커스를 해제하여 키보드 입력 시 차종이 바뀌지 않게 함
+                document.getElementById("carSelect").blur(); 
             };
 
             window.resetGame = function() {
                 playerCarModel.position.set(0, 0, 0);
-                playerSpeed = 0;
-                currentNitro = 100;
-                progressDist = 10000;
-                isFinished = false;
+                playerCarModel.rotation.set(0, 0, 0);
+                playerSpeed = 0; currentNitro = 100; progressDist = 3000; isFinished = false;
                 document.getElementById("finish-message").style.display = "none";
                 document.getElementById("restartBtn").style.display = "none";
+                gridHelper.position.z = 0; // 그리드 초기화
             };
 
-            // === 게임 루프 ===
+            // === 5. 메인 게임 루프 ===
+            let cameraShake = 0;
+
             function animate() {
                 requestAnimationFrame(animate);
 
@@ -413,97 +324,67 @@ def run_game():
                     let spec = carSpecs[currentCarType];
                     let currentMax = spec.maxSpeed;
 
-                    // 부스터 (SPACE - 카트라이더 연출)
+                    // 니트로 부스트 처리
                     const nitroBar = document.getElementById("nitro-bar");
                     if (keys.space && currentNitro > 0) {
                         currentMax = spec.nitroMax;
-                        currentNitro -= 0.6;
-                        camera.fov = 85; // 부스터 시야각
-                        nitroBar.style.background = "#ffcc00"; // 부스터 색상 변화
-                        nitroBar.style.boxShadow = "0 0 15px #ffcc00";
+                        currentNitro -= 0.5;
+                        camera.fov = THREE.MathUtils.lerp(camera.fov, 90, 0.1); // 시야각 줌아웃 연출
+                        cameraShake = 0.15; // 부스터 시 카메라 진동
                     } else {
-                        if (currentNitro < 100) currentNitro += 0.15;
-                        camera.fov = 75;
-                        nitroBar.style.background = ""; // 기본 색상
-                        nitroBar.style.boxShadow = "";
+                        if (currentNitro < 100) currentNitro += 0.1;
+                        camera.fov = THREE.MathUtils.lerp(camera.fov, 70, 0.1);
+                        cameraShake = 0;
                     }
                     camera.updateProjectionMatrix();
 
-                    // 가속 & 감속 (W, S)
+                    // 가감속 및 물리
                     if (keys.w) {
                         playerSpeed += spec.accel;
                         if (playerSpeed > currentMax) playerSpeed = currentMax;
                     } else if (keys.s) {
-                        playerSpeed -= 0.06;
+                        playerSpeed -= 0.1;
                     } else {
-                        playerSpeed -= 0.015; // 자연 감속
+                        playerSpeed -= 0.02; // 마찰 저항
                     }
                     if (playerSpeed < 0) playerSpeed = 0;
 
-                    // 좌우 조향 (A, D) - 속도 비례
-                    if (keys.a && playerCarModel.position.x > -37) {
-                        playerCarModel.position.x -= spec.handling * (playerSpeed/1.5);
-                        playerCarModel.rotation.y = 0.12;
-                    } else if (keys.d && playerCarModel.position.x < 37) {
-                        playerCarModel.position.x += spec.handling * (playerSpeed/1.5);
-                        playerCarModel.rotation.y = -0.12;
+                    // 조향 시스템 (고속일수록 부드럽게)
+                    let turnAmount = spec.handling * (playerSpeed / 1.5);
+                    if (turnAmount > spec.handling) turnAmount = spec.handling; // 한계 조향각
+                    
+                    if (keys.a && playerCarModel.position.x > -28) {
+                        playerCarModel.position.x -= turnAmount;
+                        playerCarModel.rotation.y = THREE.MathUtils.lerp(playerCarModel.rotation.y, 0.15, 0.1);
+                    } else if (keys.d && playerCarModel.position.x < 28) {
+                        playerCarModel.position.x += turnAmount;
+                        playerCarModel.rotation.y = THREE.MathUtils.lerp(playerCarModel.rotation.y, -0.15, 0.1);
                     } else {
-                        playerCarModel.rotation.y = 0;
+                        playerCarModel.rotation.y = THREE.MathUtils.lerp(playerCarModel.rotation.y, 0, 0.1);
                     }
 
-                    // 전진
+                    // 전진 처리 및 무한 그리드 착시 연출
                     playerCarModel.position.z -= playerSpeed;
-                    progressDist = 10000 + playerCarModel.position.z;
+                    progressDist -= playerSpeed;
+                    
+                    // 자동차 주변 네온 핑크 조명 이동
+                    pinkLight.position.set(playerCarModel.position.x, 5, playerCarModel.position.z);
 
-                    // 충돌 감지 (카트라이더 방식 페널티 - 속도 감소 및 튕김)
-                    if (playerCarModel.position.x <= -37 || playerCarModel.position.x >= 37) {
-                        playerSpeed *= 0.85; // 코스 이탈 페널티
-                    }
-                    for(let i=0; i<traffic.length; i++) {
-                        let tr = traffic[i];
-                        if (Math.abs(playerCarModel.position.z - tr.position.z) < 10 && 
-                            Math.abs(playerCarModel.position.x - tr.position.x) < 4.5) {
-                            playerSpeed *= 0.45; // 트래픽 충돌 페널티
-                            playerCarModel.position.z += 3; // 약간 튕겨나감
-                        }
-                    }
+                    // 바퀴 회전 애니메이션 적용
+                    wheels.forEach(wheel => { wheel.rotation.x -= playerSpeed * 0.5; });
 
-                    // 완주 체크
+                    // 완주 판정
                     if (progressDist <= 0) {
+                        progressDist = 0;
                         isFinished = true;
                         document.getElementById("finish-message").style.display = "block";
                         document.getElementById("restartBtn").style.display = "block";
                     }
 
-                    // 카메라 추적 (3인칭 백뷰)
-                    camera.position.x = playerCarModel.position.x;
-                    camera.position.y = playerCarModel.position.y + 7;
-                    camera.position.z = playerCarModel.position.z + 23;
-                    camera.lookAt(playerCarModel.position.x, playerCarModel.position.y, playerCarModel.position.z - 10);
-
-                    // UI 업데이트
-                    document.getElementById("speedUi").innerText = Math.floor(playerSpeed * 120);
-                    nitroBar.style.width = currentNitro + "%";
-                    document.getElementById("distUi").innerText = Math.max(0, Math.floor(progressDist));
-                }
-
-                renderer.render(scene, camera);
-            }
-
-            // 반응형 리사이징
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-
-            animate();
-        </script>
-    </body>
-    </html>
-    """
-
-    st.components.v1.html(game_html, height=850, scrolling=False)
-
-if __name__ == "__main__":
-    run_game()
+                    // 역동적인 카메라 백뷰 + 카메라 셰이크
+                    let shakeX = (Math.random() - 0.5) * cameraShake * (playerSpeed / 3);
+                    let shakeY = (Math.random() - 0.5) * cameraShake * (playerSpeed / 3);
+                    
+                    camera.position.x = THREE.MathUtils.lerp(camera.position.x, playerCarModel.position.x + shakeX, 0.1);
+                    camera.position.y = THREE.MathUtils.lerp(camera.position.y, playerCarModel.position.y + 6 + shakeY, 0.1);
+                    camera.position.z = THREE.MathUtils.lerp(camera.position.z, playerCarModel.position
