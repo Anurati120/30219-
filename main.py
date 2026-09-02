@@ -3,7 +3,7 @@ import streamlit as st
 # 1. 페이지 설정
 st.set_page_config(page_title="NEON AUTO VAULT", page_icon="🏎️", layout="wide")
 
-# 2. 스타일링 CSS (검색창 글씨 검정색 강제 고정 및 타이포그래피 테마)
+# 2. 스타일링 CSS
 st.markdown("""
 <style>
     .stApp {
@@ -54,7 +54,6 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
-    /* 순수 타이포그래피 브랜드 디스플레이 박스 */
     .typo-box {
         width: 100%;
         height: 380px;
@@ -106,81 +105,170 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. 10개 차량 타이포그래피 데이터베이스
+# 3. 통합 차량 데이터베이스 (기아 전 차종 + 람보르기니 + 기존 주요 차량)
 CAR_DATABASE = {
+    # --- 람보르기니 라인업 ---
+    "람보르기니 아벤타도르": {
+        "title": "Lamborghini Aventador", "brand": "LAMBORGHINI", "release": "2011년 출시",
+        "desc": "자연흡기 V12 엔진의 황홀한 배기음과 시그니처 시저 도어를 탑재한 플래그십 V12 슈퍼카입니다.",
+        "price_new": "약 5억 ~ 6억 원대 이상", "price_used": "약 4억 ~ 5억 5,000만 원",
+        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #f39c12; letter-spacing: 2px; text-shadow: 0 0 25px rgba(243,156,18,0.6);">AVENTADOR</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 6px; margin-top: 10px;">LAMBORGHINI V12</div>'
+    },
+    "람보르기니 우라칸": {
+        "title": "Lamborghini Huracan", "brand": "LAMBORGHINI", "release": "2014년 출시",
+        "desc": "경쾌한 고회전 NA V10 엔진을 품은 베스트셀링 슈퍼카로, 짜릿한 드라이빙 퍼포먼스를 제공합니다.",
+        "price_new": "약 3억 ~ 4억 원대", "price_used": "약 2억 5,000만 ~ 3억 5,000만 원",
+        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #e74c3c; letter-spacing: 3px; text-shadow: 0 0 25px rgba(231,76,60,0.6);">HURACAN</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 6px; margin-top: 10px;">V10 SUPERCAR</div>'
+    },
+    "람보르기니 우루스": {
+        "title": "Lamborghini Urus S / Performante", "brand": "LAMBORGHINI", "release": "2018년 출시",
+        "desc": "슈퍼카의 DNA를 이식받은 고성능 럭셔리 SUV의 끝판왕. 강력한 트윈터보 V8 파워를 자랑합니다.",
+        "price_new": "약 3억 ~ 3억 6,000만 원+", "price_used": "약 2억 8,000만 ~ 3억 3,000만 원",
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #f1c40f; letter-spacing: 6px; text-shadow: 0 0 25px rgba(241,196,15,0.6);">URUS</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 6px; margin-top: 10px;">SUPER SUV</div>'
+    },
+    "람보르기니 레부엘토": {
+        "title": "Lamborghini Revuelto", "brand": "LAMBORGHINI", "release": "2023년 공개",
+        "desc": "아벤타도르의 뒤를 잇는 V12 자연흡기 기반의 고성능 하이브리드(HPEV) 플래그십 슈퍼카입니다.",
+        "price_new": "약 7억 원대~", "price_used": "매물 희귀",
+        "typo_html": '<div style="font-size: 3rem; font-weight: 900; color: #9b59b6; letter-spacing: 3px; text-shadow: 0 0 25px rgba(155,89,182,0.6);">REVUELTO</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 6px; margin-top: 10px;">V12 HYBRID HPEV</div>'
+    },
+
+    # --- 기아 전 차종 라인업 ---
+    "기아 모닝": {
+        "title": "Kia Morning (The New Morning)", "brand": "KIA", "release": "2004년 최초 출시",
+        "desc": "도심 주행과 뛰어난 경제성을 자랑하는 대한민국 대표 경차입니다.",
+        "price_new": "약 1,300만 ~ 1,650만 원", "price_used": "약 800만 ~ 1,300만 원",
+        "typo_html": '<div style="font-size: 3.8rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ MORNING</div>'
+    },
+    "기아 레이": {
+        "title": "Kia Ray (The New Ray)", "brand": "KIA", "release": "2011년 최초 출시",
+        "desc": "박스형 디자인과 조수석 슬라이딩 도로 광활한 실내 공간을 자랑하는 경차입니다.",
+        "price_new": "약 1,350만 ~ 1,800만 원", "price_used": "약 900만 ~ 1,450만 원",
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ RAY</div>'
+    },
+    "기아 k3": {
+        "title": "Kia K3", "brand": "KIA", "release": "2012년 출시",
+        "desc": "세련된 디자인과 뛰어난 연비를 갖춘 준중형 세단입니다.",
+        "price_new": "약 1,800만 ~ 2,600만 원", "price_used": "약 1,100만 ~ 2,100만 원",
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ K3</div>'
+    },
+    "기아 k5": {
+        "title": "Kia K5 (The New K5)", "brand": "KIA", "release": "2010년 최초 출시",
+        "desc": "스포티하고 역동적인 패스트백 스타일 디자인으로 사랑받는 중형 세단입니다.",
+        "price_new": "약 2,400만 ~ 3,900만 원", "price_used": "약 1,500만 ~ 3,200만 원",
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ K5</div>'
+    },
+    "기아 k8": {
+        "title": "Kia K8", "brand": "KIA", "release": "2021년 출시",
+        "desc": "고급스러움과 혁신적인 첨단 사양이 조화로운 기아의 준대형 세단입니다.",
+        "price_new": "약 3,300만 ~ 5,200만 원", "price_used": "약 2,500만 ~ 4,200만 원",
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ K8</div>'
+    },
+    "기아 k9": {
+        "title": "Kia K9", "brand": "KIA", "release": "2012년 출시",
+        "desc": "최상급 승차감과 정숙성을 자랑하는 기아의 플래그십 대형 세단입니다.",
+        "price_new": "약 5,900만 ~ 8,800만 원", "price_used": "약 3,500만 ~ 7,000만 원",
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ K9</div>'
+    },
+    "기아 셀토스": {
+        "title": "Kia Seltos", "brand": "KIA", "release": "2019년 출시",
+        "desc": "소형 SUV 시장에서 탄탄한 주행 성능과 넓은 공간으로 압도적 인기를 누리는 모델입니다.",
+        "price_new": "약 2,100만 ~ 3,000만 원", "price_used": "약 1,500만 ~ 2,500만 원",
+        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ SELTOS</div>'
+    },
+    "기아 니로": {
+        "title": "Kia Niro (Hybrid / EV)", "brand": "KIA", "release": "2016년 출시",
+        "desc": "친환경 전용 플랫폼으로 뛰어난 연비와 실용성을 겸비한 친환경 SUV입니다.",
+        "price_new": "약 2,700만 ~ 5,000만 원", "price_used": "약 1,600만 ~ 3,800만 원",
+        "typo_html": '<div style="font-size: 3.8rem; font-weight: 900; color: #2ecc71; letter-spacing: 5px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ NIRO</div>'
+    },
+    "기아 스포티지": {
+        "title": "Kia Sportage (5세대)", "brand": "KIA", "release": "1993년 최초 출시",
+        "desc": "혁신적인 디자인과 다재다능한 공간을 갖춘 대한민국 대표 준중형 SUV입니다.",
+        "price_new": "약 2,500만 ~ 4,000만 원", "price_used": "약 1,700만 ~ 3,400만 원",
+        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ SPORTAGE</div>'
+    },
+    "기아 쏘렌토": {
+        "title": "Kia Sorento (Hybrid)", "brand": "KIA", "release": "2020년 4세대",
+        "desc": "대한민국 패밀리 SUV 시장의 독보적인 1위. 뛰어난 공간 활용성이 강점입니다.",
+        "price_new": "약 3,500만 ~ 4,800만 원", "price_used": "약 2,500만 ~ 4,000만 원",
+        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ SORENTO</div>'
+    },
+    "기아 모하비": {
+        "title": "Kia Mohave", "brand": "KIA", "release": "2008년 출시",
+        "desc": "정통 프레임 바디와 V6 3.0 디젤 엔진의 묵직한 주행감을 자랑하는 대형 SUV입니다.",
+        "price_new": "약 5,000만 ~ 6,000만 원대", "price_used": "약 2,800만 ~ 4,800만 원",
+        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ MOHAVE</div>'
+    },
+    "기아 카니발": {
+        "title": "Kia Carnival", "brand": "KIA", "release": "1998년 최초 출시",
+        "desc": "대체불가능한 대한민국 아빠들의 영원한 드림카, 패밀리 미니밴의 표준입니다.",
+        "price_new": "약 3,500만 ~ 5,000만 원+", "price_used": "약 2,200만 ~ 4,200만 원",
+        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ CARNIVAL</div>'
+    },
+    "기아 스팅어": {
+        "title": "Kia Stinger", "brand": "KIA", "release": "2017년 출시 (단종)",
+        "desc": "국산 후륜구동 스포츠 세단의 지평을 열었던 매력적인 고성능 모델입니다.",
+        "price_new": "단종 (출고가 약 3,900만 ~ 5,500만 원)", "price_used": "약 2,200만 ~ 4,000만 원",
+        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ STINGER</div>'
+    },
+    "기아 ev3": {
+        "title": "Kia EV3", "brand": "KIA", "release": "2024년 출시",
+        "desc": "기아의 보급형 전기차 대중화를 이끄는 컴팩트 순수 전기 SUV입니다.",
+        "price_new": "약 3,900만 ~ 5,000만 원", "price_used": "약 3,200만 ~ 4,200만 원",
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ EV3</div>'
+    },
+    "기아 ev6": {
+        "title": "Kia EV6 (GT 포함)", "brand": "KIA", "release": "2021년 출시",
+        "desc": "초고속 충전 시스템과 압도적인 주행 성능을 지닌 전용 전기차입니다.",
+        "price_new": "약 4,800만 ~ 7,200만 원", "price_used": "약 3,200만 ~ 5,500만 원",
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ EV6</div>'
+    },
+    "기아 ev9": {
+        "title": "Kia EV9", "brand": "KIA", "release": "2023년 출시",
+        "desc": "플래그십 전동화 SUV로서 웅장한 체급과 첨단 기술을 모두 담은 대형 전기 SUV입니다.",
+        "price_new": "약 7,300만 ~ 8,800만 원+", "price_used": "약 5,200만 ~ 7,000만 원",
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ EV9</div>'
+    },
+
+    # --- 기존 주요 차량들 ---
     "닛산 gtr": {
         "title": "Nissan GT-R (R35)", "brand": "NISSAN", "release": "2007년 12월",
-        "desc": "일명 '고질라'. 3.8L V6 트윈터보 엔진과 전설적인 ATTESA E-TS 4륜구동 시스템을 탑재한 일본의 대표 슈퍼카입니다.",
+        "desc": "일명 '고질라'. 3.8L V6 트윈터보 엔진과 4륜구동 시스템을 탑재한 일본의 슈퍼카입니다.",
         "price_new": "약 1억 4,000만 ~ 2억 5,000만 원", "price_used": "약 7,500만 ~ 1억 3,000만 원",
         "typo_html": '<div style="font-size: 4.5rem; font-weight: 900; color: #ff3333; letter-spacing: 3px; text-shadow: 0 0 25px rgba(255,51,51,0.6);">GT-R</div><div style="font-size: 1.1rem; color: #a0a0b0; font-weight: 600; letter-spacing: 8px; margin-top: 10px;">NISSAN RACING</div>'
     },
     "포르쉐 911": {
-        "title": "Porsche 911 (992)", "brand": "PORSCHE", "release": "1963년 최초 출시 (현행 8세대)",
-        "desc": "후면 엔진(RR) 구조를 수십 년간 고수해 온 스포츠카의 살아있는 전설. 완벽한 핸들링과 데일리 성능을 자랑합니다.",
+        "title": "Porsche 911 (992)", "brand": "PORSCHE", "release": "1963년 최초 출시",
+        "desc": "후면 엔진(RR) 구조를 고수해 온 스포츠카의 살아있는 전설입니다.",
         "price_new": "약 1억 7,000만 원 ~ 3억 5,000만 원+", "price_used": "약 9,000만 ~ 2억 원대",
         "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #f1c40f; font-family: serif; letter-spacing: 4px; text-shadow: 0 0 25px rgba(241,196,15,0.5);">PORSCHE</div><div style="font-size: 0.95rem; color: #d4af37; font-weight: 600; letter-spacing: 10px; margin-top: 10px;">STUTTGART</div>'
     },
-    "테슬라 모델3": {
-        "title": "Tesla Model 3 Performance", "brand": "TESLA", "release": "2017년 글로벌 최초 출시",
-        "desc": "전기차 혁명을 이끈 주역. 미니멀한 인테리어와 폭발적인 제로백, OTA 무선 업데이트 기능이 특징입니다.",
-        "price_new": "약 5,200만 ~ 6,800만 원", "price_used": "약 3,000만 ~ 4,500만 원",
-        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #e74c3c; letter-spacing: 8px; text-shadow: 0 0 25px rgba(231,76,60,0.6);">TESLA</div><div style="font-size: 0.95rem; color: #a0a0b0; font-weight: 600; letter-spacing: 6px; margin-top: 10px;">ELECTRIC REVOLUTION</div>'
-    },
-    "제네시스 g80": {
-        "title": "Genesis G80 (3세대)", "brand": "GENESIS", "release": "2020년 3세대 출시",
-        "desc": "'역동적인 우아함'을 담아낸 대한민국 프리미엄 럭셔리 세단의 기준. 정숙성과 첨단 편의 사양이 일품입니다.",
-        "price_new": "약 5,500만 ~ 8,500만 원", "price_used": "약 3,500만 ~ 6,000만 원",
-        "typo_html": '<div style="font-size: 2.8rem; font-weight: 300; color: #ffffff; font-family: serif; letter-spacing: 10px; text-shadow: 0 0 20px rgba(255,255,255,0.5);">GENESIS</div><div style="font-size: 0.85rem; color: #888; font-weight: 600; letter-spacing: 6px; margin-top: 10px;">LUXURY SEDAN</div>'
-    },
-    "bmw 5시리즈": {
-        "title": "BMW 5 Series (G60)", "brand": "BMW", "release": "2023년 8세대 풀체인지",
-        "desc": "전 세계 비즈니스 세단 시장의 절대강자. 다이내믹한 주행 성능과 순수 전기차(i5) 라인업까지 확장되었습니다.",
-        "price_new": "약 6,800만 ~ 1억 1,000만 원", "price_used": "약 4,000만 ~ 8,000만 원",
-        "typo_html": '<div style="display: flex; justify-content: center; gap: 6px; font-size: 3.8rem; font-weight: 900; text-shadow: 0 0 25px rgba(0,102,178,0.6);"><span style="color:#0066b2;">B</span><span style="color:#ffffff;">M</span><span style="color:#e87722;">W</span></div><div style="font-size: 0.95rem; color: #a0a0b0; font-weight: 600; letter-spacing: 6px; margin-top: 5px;">THE ULTIMATE DRIVING MACHINE</div>'
-    },
     "현대 그랜저": {
-        "title": "Hyundai Grandeur (GN7)", "brand": "HYUNDAI", "release": "2022년 11월 7세대",
-        "desc": "대한민국 플래그십 세단의 상징. 일체형 심리스 호라이즌 램프와 광활한 실내 공간을 갖추었습니다.",
+        "title": "Hyundai Grandeur (GN7)", "brand": "HYUNDAI", "release": "2022년 11월",
+        "desc": "대한민국 플래그십 세단의 상징. 일체형 심리스 호라이즌 램프가 특징입니다.",
         "price_new": "약 3,700만 ~ 5,500만 원", "price_used": "약 2,800만 ~ 4,500만 원",
         "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #00f2fe; letter-spacing: 6px; text-shadow: 0 0 25px rgba(0,242,254,0.6);">HYUNDAI</div><div style="font-size: 0.95rem; color: #a0a0b0; font-weight: 600; letter-spacing: 5px; margin-top: 10px;">FLAGSHIP SEDAN</div>'
     },
     "메르세데스 벤츠 e클래스": {
-        "title": "Mercedes-Benz E-Class", "brand": "MERCEDES-BENZ", "release": "2023년 11세대 공개",
-        "desc": "럭셔리의 대명사. 화려한 MBUX 슈퍼스크린과 극상의 승차감으로 수입차 시장을 평정한 모델입니다.",
+        "title": "Mercedes-Benz E-Class", "brand": "MERCEDES-BENZ", "release": "2023년 11세대",
+        "desc": "럭셔리의 대명사. 화려한 슈퍼스크린과 극상의 승차감을 선사합니다.",
         "price_new": "약 7,300만 ~ 1억 3,000만 원", "price_used": "약 4,000만 ~ 9,000만 원",
         "typo_html": '<div style="font-size: 2.3rem; font-weight: 900; color: #ffffff; letter-spacing: 3px; text-shadow: 0 0 25px rgba(255,255,255,0.7);">MERCEDES-BENZ</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 8px; margin-top: 10px;">THE BEST OR NOTHING</div>'
-    },
-    "포드 머스탱": {
-        "title": "Ford Mustang (Dark Horse)", "brand": "FORD", "release": "1964년 최초 / 현행 7세대",
-        "desc": "아메리칸 머슬카의 살아있는 영혼. 가슴을 울리는 V8 배기음과 상징적인 디자인이 매력입니다.",
-        "price_new": "약 5,900만 ~ 8,600만 원", "price_used": "약 3,000만 ~ 6,000만 원",
-        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #ff8800; letter-spacing: 4px; text-shadow: 0 0 25px rgba(255,136,0,0.6);">MUSTANG</div><div style="font-size: 0.95rem; color: #a0a0b0; font-weight: 600; letter-spacing: 8px; margin-top: 10px;">AMERICAN MUSCLE</div>'
-    },
-    "아우디 a6": {
-        "title": "Audi A6", "brand": "AUDI", "release": "2018년 8세대",
-        "desc": "디지털 라이팅 기술의 선두주자. 첨단 버츄얼 콕핏과 안정적인 콰트로 시스템을 자랑합니다.",
-        "price_new": "약 7,000만 ~ 9,500만 원", "price_used": "약 3,500만 ~ 6,000만 원",
-        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #e0e0e0; letter-spacing: 12px; text-shadow: 0 0 25px rgba(224,224,224,0.5);">AUDI</div><div style="font-size: 0.95rem; color: #a0a0b0; font-weight: 600; letter-spacing: 8px; margin-top: 10px;">VORSPRUNG DURCH TECHNIK</div>'
-    },
-    "기아 쏘렌토": {
-        "title": "Kia Sorento (Hybrid)", "brand": "KIA", "release": "2020년 4세대 (페이스리프트)",
-        "desc": "대한민국 패밀리 SUV 시장의 독보적인 1위. 뛰어난 공간 활용성과 친환경 하이브리드 조합이 강점입니다.",
-        "price_new": "약 3,500만 ~ 4,800만 원", "price_used": "약 2,500만 ~ 4,000만 원",
-        "typo_html": '<div style="font-size: 3.8rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 5px; margin-top: 10px;">MOVEMENT THAT INSPIRES</div>'
     }
 }
 
 # 4. 상단 메인 헤더 및 검색창 중앙 배치
 st.write("\n")
 st.markdown("<h1 class='hero-title'>NEON AUTO VAULT</h1>", unsafe_allow_html=True)
-st.markdown("<p class='hero-subtitle'>⚡ 감각적인 타이포그래피와 실시간 시세를 완벽하게 확인하세요</p>", unsafe_allow_html=True)
+st.markdown("<p class='hero-subtitle'>⚡ 기아 전 차종 및 람보르기니 타이포그래피 오토 갤러리</p>", unsafe_allow_html=True)
 
 st.write("\n")
 col_space1, col_search, col_space2 = st.columns([1, 2.2, 1])
 with col_search:
     search_query = st.text_input(
         "검색", 
-        placeholder="🔍 차량 이름을 입력하세요 (예: 닛산 GTR, 포르쉐 911, 그랜저...)", 
+        placeholder="🔍 차량 이름을 입력하세요 (예: 쏘렌토, 아벤타도르, K5, 911...)", 
         label_visibility="collapsed"
     ).strip().lower()
 
@@ -227,7 +315,7 @@ if search_query:
         st.markdown("""
         <div style="text-align: center; padding: 40px; background: rgba(255,0,0,0.05); border: 1px solid rgba(255,0,0,0.2); border-radius: 16px; margin-top: 20px;">
             <h3 style="color: #ff4b4b;">⚠️ 차량 정보를 찾을 수 없습니다</h3>
-            <p style="color: #aaa;">등록된 차량 이름(GTR, 911, 모델3, G80, 5시리즈, 그랜저, E클래스, 머스탱, A6, 쏘렌토)으로 다시 검색해 주세요.</p>
+            <p style="color: #aaa;">모닝, 레이, K5, 쏘렌토, 카니발, 아벤타도르, 우루스 등 올바른 차량명을 검색해 주세요.</p>
         </div>
         """, unsafe_allow_html=True)
 else:
@@ -240,21 +328,21 @@ else:
     with feat_col1:
         st.markdown(f"""
         <div class="gallery-typo-box">
-            {CAR_DATABASE["포르쉐 911"]["typo_html"]}
+            {CAR_DATABASE["람보르기니 아벤타도르"]["typo_html"]}
         </div>
-        <h4 style='text-align: center; margin-top: 15px; color: #fff;'>포르쉐 911 (992)</h4>
+        <h4 style='text-align: center; margin-top: 15px; color: #fff;'>람보르기니 아벤타도르</h4>
         """, unsafe_allow_html=True)
     with feat_col2:
         st.markdown(f"""
         <div class="gallery-typo-box">
-            {CAR_DATABASE["닛산 gtr"]["typo_html"]}
+            {CAR_DATABASE["기아 쏘렌토"]["typo_html"]}
         </div>
-        <h4 style='text-align: center; margin-top: 15px; color: #fff;'>닛산 GT-R (R35)</h4>
+        <h4 style='text-align: center; margin-top: 15px; color: #fff;'>기아 쏘렌토</h4>
         """, unsafe_allow_html=True)
     with feat_col3:
         st.markdown(f"""
         <div class="gallery-typo-box">
-            {CAR_DATABASE["메르세데스 벤츠 e클래스"]["typo_html"]}
+            {CAR_DATABASE["기아 카니발"]["typo_html"]}
         </div>
-        <h4 style='text-align: center; margin-top: 15px; color: #fff;'>메르세데스 벤츠 E-Class</h4>
+        <h4 style='text-align: center; margin-top: 15px; color: #fff;'>기아 카니발</h4>
         """, unsafe_allow_html=True)
