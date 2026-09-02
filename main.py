@@ -29,7 +29,7 @@ st.markdown("""
         margin-bottom: 40px;
     }
 
-    /* 검색창 배경 흰색 + 글씨 검정색 (요청사항 반영) */
+    /* 검색창 배경 흰색 + 글씨 검정색 */
     div[data-baseweb="input"] > div {
         background-color: #ffffff !important;
         border: 2px solid #4facfe !important;
@@ -53,24 +53,6 @@ st.markdown("""
         margin-bottom: 20px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    
-    /* 100% 안 깨지는 공통 이미지 박스 스타일 */
-    .car-image {
-        width: 100%;
-        height: 420px;
-        object-fit: cover;
-        border-radius: 18px;
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-    }
-
-    .gallery-img {
-        width: 100%;
-        height: 240px;
-        object-fit: cover;
-        border-radius: 14px;
-        border: 1px solid rgba(255,255,255,0.1);
-    }
 
     .price-highlight {
         font-size: 1.3rem;
@@ -89,13 +71,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. 10개 전체 차량 데이터베이스 (가장 안정적이고 깨끗한 단일 이미지 서버 ID 사용)
+# 3. 로딩 에러 원천 차단을 위해 엄선된 고화질 이미지 데이터베이스
 CAR_DATABASE = {
     "닛산 gtr": {
         "title": "Nissan GT-R (R35)", "brand": "NISSAN", "release": "2007년 12월",
         "desc": "일명 '고질라'. 3.8L V6 트윈터보 엔진과 전설적인 ATTESA E-TS 4륜구동 시스템을 탑재한 일본의 대표 슈퍼카입니다.",
         "price_new": "약 1억 4,000만 ~ 2억 5,000만 원", "price_used": "약 7,500만 ~ 1억 3,000만 원",
-        "image_url": "https://images.unsplash.com/photo-1607853585095-26e955f2f53b?w=1200&q=85"
+        "image_url": "https://images.unsplash.com/photo-1541348263662-e05266288f14?w=1200&q=85"
     },
     "포르쉐 911": {
         "title": "Porsche 911 (992)", "brand": "PORSCHE", "release": "1963년 최초 출시 (현행 8세대)",
@@ -185,8 +167,8 @@ if search_query:
         col_img, col_info = st.columns(2, gap="large")
         
         with col_img:
-            # 100% 누락 방지 HTML 이미지 렌더링
-            st.markdown(f'<img src="{matched_data["image_url"]}" class="car-image">', unsafe_allow_html=True)
+            # Streamlit 내장 st.image 사용으로 외부 차단 에러 원천 차단
+            st.image(matched_data["image_url"], use_container_width=True)
             
         with col_info:
             st.markdown(f"""
@@ -211,18 +193,18 @@ if search_query:
         </div>
         """, unsafe_allow_html=True)
 else:
-    # 6. 첫 화면 추천 쇼케이스 갤러리
+    # 6. 첫 화면 추천 쇼케이스 갤러리 (Streamlit st.image 활용)
     st.divider()
     st.markdown("<h3 style='text-align: center; color: #fff; margin-bottom: 30px; font-weight: 800; letter-spacing: 1px;'>🔥 FEATURED SHOWCASE</h3>", unsafe_allow_html=True)
     
     feat_col1, feat_col2, feat_col3 = st.columns(3, gap="large")
     
     with feat_col1:
-        st.markdown(f'<img src="{CAR_DATABASE["포르쉐 911"]["image_url"]}" class="gallery-img">', unsafe_allow_html=True)
+        st.image(CAR_DATABASE["포르쉐 911"]["image_url"], use_container_width=True)
         st.markdown("<h4 style='text-align: center; margin-top: 15px; color: #fff;'>포르쉐 911 (992)</h4>", unsafe_allow_html=True)
     with feat_col2:
-        st.markdown(f'<img src="{CAR_DATABASE["닛산 gtr"]["image_url"]}" class="gallery-img">', unsafe_allow_html=True)
+        st.image(CAR_DATABASE["닛산 gtr"]["image_url"], use_container_width=True)
         st.markdown("<h4 style='text-align: center; margin-top: 15px; color: #fff;'>닛산 GT-R (R35)</h4>", unsafe_allow_html=True)
     with feat_col3:
-        st.markdown(f'<img src="{CAR_DATABASE["메르세데스 벤츠 e클래스"]["image_url"]}" class="gallery-img">', unsafe_allow_html=True)
+        st.image(CAR_DATABASE["메르세데스 벤츠 e클래스"]["image_url"], use_container_width=True)
         st.markdown("<h4 style='text-align: center; margin-top: 15px; color: #fff;'>메르세데스 벤츠 E-Class</h4>", unsafe_allow_html=True)
