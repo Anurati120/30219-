@@ -1,348 +1,230 @@
 import streamlit as st
+import plotly.graph_objects as go
+import math
 
-# 1. 페이지 설정
-st.set_page_config(page_title="NEON AUTO VAULT", page_icon="🏎️", layout="wide")
+# 1. 페이지 설정 및 플롯리(Plotly) 레이아웃 설정
+st.set_page_config(page_title="NEON AUTO VAULT | PRO", page_icon="🏎️", layout="wide")
 
-# 2. 스타일링 CSS
+# 2. 울트라 프리미엄 CSS
 st.markdown("""
 <style>
     .stApp {
-        background: radial-gradient(circle at center, #111118 0%, #050508 100%);
+        background: radial-gradient(circle at top, #161625 0%, #050508 100%);
         color: #e0e0e0;
-        font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'SF Pro Display', -apple-system, sans-serif;
     }
     
     .hero-title {
-        text-align: center;
-        font-size: 4rem;
-        font-weight: 900;
-        letter-spacing: -1px;
+        text-align: center; font-size: 4.5rem; font-weight: 900; letter-spacing: -2px;
         background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #f093fb 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 5px;
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px;
     }
     .hero-subtitle {
-        text-align: center;
-        color: #8b8b9e;
-        font-size: 1.2rem;
-        margin-bottom: 40px;
+        text-align: center; color: #8b8b9e; font-size: 1.2rem; margin-bottom: 40px; letter-spacing: 2px;
     }
 
-    /* 검색창 배경 흰색 + 글씨 검정색 강제 고정 */
     div[data-baseweb="input"] > div {
-        background-color: #ffffff !important;
-        border: 2px solid #4facfe !important;
-        border-radius: 16px !important;
-        box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+        background-color: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(79, 172, 254, 0.5) !important;
+        border-radius: 12px !important; color: #fff !important;
     }
-    input {
-        color: #000000 !important;
-        font-weight: 700 !important;
-        font-size: 1.2rem !important;
-    }
+    input { color: #ffffff !important; font-weight: 700 !important; font-size: 1.2rem !important; text-align: center; }
 
-    /* 글래스모피즘 정보 카드 */
     .glass-card {
-        background: rgba(18, 18, 28, 0.8);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        padding: 30px;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        background: rgba(20, 20, 30, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; margin-bottom: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
     }
 
     .typo-box {
-        width: 100%;
-        height: 380px;
-        background: linear-gradient(135deg, #161625 0%, #0b0b12 100%);
-        border-radius: 20px;
-        border: 2px solid rgba(79, 172, 254, 0.3);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.7);
-        text-align: center;
-        padding: 20px;
+        width: 100%; height: 300px; background: linear-gradient(135deg, #11111a 0%, #08080c 100%);
+        border-radius: 20px; border: 1px solid rgba(79, 172, 254, 0.2);
+        display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+        box-shadow: inset 0 0 50px rgba(0,242,254,0.05);
     }
 
-    .gallery-typo-box {
-        width: 100%;
-        height: 200px;
-        background: linear-gradient(135deg, #161625 0%, #0b0b12 100%);
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        padding: 10px;
+    .badge-depreciation {
+        display: inline-block; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 1rem;
+        background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3); margin-top: 10px;
     }
-    .gallery-typo-box:hover {
-        transform: translateY(-5px);
-        border-color: #4facfe;
-        box-shadow: 0 10px 25px rgba(79, 172, 254, 0.2);
-    }
+    .badge-good { color: #2ecc71; background: rgba(46, 204, 113, 0.1); border-color: rgba(46, 204, 113, 0.3); }
 
-    .price-highlight {
-        font-size: 1.3rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .section-header {
-        color: #ffffff;
-        font-weight: 700;
-        border-bottom: 2px solid #2d2d44;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
+    .highlight-value {
+        font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. 통합 차량 데이터베이스 (기아 전 차종 + 람보르기니 + 기존 주요 차량)
+# 3. 데이터베이스 (스펙 데이터 & 계산용 수치 추가)
+# specs: [최고출력, 가속력(제로백), 최고속도, 핸들링/코너링, 실용성/공간] (100점 만점 기준)
 CAR_DATABASE = {
-    # --- 람보르기니 라인업 ---
     "람보르기니 아벤타도르": {
-        "title": "Lamborghini Aventador", "brand": "LAMBORGHINI", "release": "2011년 출시",
-        "desc": "자연흡기 V12 엔진의 황홀한 배기음과 시그니처 시저 도어를 탑재한 플래그십 V12 슈퍼카입니다.",
-        "price_new": "약 5억 ~ 6억 원대 이상", "price_used": "약 4억 ~ 5억 5,000만 원",
-        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #f39c12; letter-spacing: 2px; text-shadow: 0 0 25px rgba(243,156,18,0.6);">AVENTADOR</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 6px; margin-top: 10px;">LAMBORGHINI V12</div>'
-    },
-    "람보르기니 우라칸": {
-        "title": "Lamborghini Huracan", "brand": "LAMBORGHINI", "release": "2014년 출시",
-        "desc": "경쾌한 고회전 NA V10 엔진을 품은 베스트셀링 슈퍼카로, 짜릿한 드라이빙 퍼포먼스를 제공합니다.",
-        "price_new": "약 3억 ~ 4억 원대", "price_used": "약 2억 5,000만 ~ 3억 5,000만 원",
-        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #e74c3c; letter-spacing: 3px; text-shadow: 0 0 25px rgba(231,76,60,0.6);">HURACAN</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 6px; margin-top: 10px;">V10 SUPERCAR</div>'
+        "title": "Lamborghini Aventador", "brand": "LAMBORGHINI", "release": "2011년",
+        "desc": "자연흡기 V12 엔진의 황홀한 배기음. 궁극의 트랙 머신입니다.",
+        "price_new_str": "6억 5,000만 원", "price_used_str": "4억 8,000만 원",
+        "price_new_num": 65000, "price_used_num": 48000, # 만원 단위
+        "specs": [95, 95, 98, 90, 20],
+        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #f39c12; letter-spacing: 2px; text-shadow: 0 0 20px rgba(243,156,18,0.5);">AVENTADOR</div>'
     },
     "람보르기니 우루스": {
-        "title": "Lamborghini Urus S / Performante", "brand": "LAMBORGHINI", "release": "2018년 출시",
-        "desc": "슈퍼카의 DNA를 이식받은 고성능 럭셔리 SUV의 끝판왕. 강력한 트윈터보 V8 파워를 자랑합니다.",
-        "price_new": "약 3억 ~ 3억 6,000만 원+", "price_used": "약 2억 8,000만 ~ 3억 3,000만 원",
-        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #f1c40f; letter-spacing: 6px; text-shadow: 0 0 25px rgba(241,196,15,0.6);">URUS</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 6px; margin-top: 10px;">SUPER SUV</div>'
-    },
-    "람보르기니 레부엘토": {
-        "title": "Lamborghini Revuelto", "brand": "LAMBORGHINI", "release": "2023년 공개",
-        "desc": "아벤타도르의 뒤를 잇는 V12 자연흡기 기반의 고성능 하이브리드(HPEV) 플래그십 슈퍼카입니다.",
-        "price_new": "약 7억 원대~", "price_used": "매물 희귀",
-        "typo_html": '<div style="font-size: 3rem; font-weight: 900; color: #9b59b6; letter-spacing: 3px; text-shadow: 0 0 25px rgba(155,89,182,0.6);">REVUELTO</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 6px; margin-top: 10px;">V12 HYBRID HPEV</div>'
-    },
-
-    # --- 기아 전 차종 라인업 ---
-    "기아 모닝": {
-        "title": "Kia Morning (The New Morning)", "brand": "KIA", "release": "2004년 최초 출시",
-        "desc": "도심 주행과 뛰어난 경제성을 자랑하는 대한민국 대표 경차입니다.",
-        "price_new": "약 1,300만 ~ 1,650만 원", "price_used": "약 800만 ~ 1,300만 원",
-        "typo_html": '<div style="font-size: 3.8rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ MORNING</div>'
-    },
-    "기아 레이": {
-        "title": "Kia Ray (The New Ray)", "brand": "KIA", "release": "2011년 최초 출시",
-        "desc": "박스형 디자인과 조수석 슬라이딩 도로 광활한 실내 공간을 자랑하는 경차입니다.",
-        "price_new": "약 1,350만 ~ 1,800만 원", "price_used": "약 900만 ~ 1,450만 원",
-        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ RAY</div>'
-    },
-    "기아 k3": {
-        "title": "Kia K3", "brand": "KIA", "release": "2012년 출시",
-        "desc": "세련된 디자인과 뛰어난 연비를 갖춘 준중형 세단입니다.",
-        "price_new": "약 1,800만 ~ 2,600만 원", "price_used": "약 1,100만 ~ 2,100만 원",
-        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ K3</div>'
-    },
-    "기아 k5": {
-        "title": "Kia K5 (The New K5)", "brand": "KIA", "release": "2010년 최초 출시",
-        "desc": "스포티하고 역동적인 패스트백 스타일 디자인으로 사랑받는 중형 세단입니다.",
-        "price_new": "약 2,400만 ~ 3,900만 원", "price_used": "약 1,500만 ~ 3,200만 원",
-        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ K5</div>'
-    },
-    "기아 k8": {
-        "title": "Kia K8", "brand": "KIA", "release": "2021년 출시",
-        "desc": "고급스러움과 혁신적인 첨단 사양이 조화로운 기아의 준대형 세단입니다.",
-        "price_new": "약 3,300만 ~ 5,200만 원", "price_used": "약 2,500만 ~ 4,200만 원",
-        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ K8</div>'
-    },
-    "기아 k9": {
-        "title": "Kia K9", "brand": "KIA", "release": "2012년 출시",
-        "desc": "최상급 승차감과 정숙성을 자랑하는 기아의 플래그십 대형 세단입니다.",
-        "price_new": "약 5,900만 ~ 8,800만 원", "price_used": "약 3,500만 ~ 7,000만 원",
-        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ K9</div>'
-    },
-    "기아 셀토스": {
-        "title": "Kia Seltos", "brand": "KIA", "release": "2019년 출시",
-        "desc": "소형 SUV 시장에서 탄탄한 주행 성능과 넓은 공간으로 압도적 인기를 누리는 모델입니다.",
-        "price_new": "약 2,100만 ~ 3,000만 원", "price_used": "약 1,500만 ~ 2,500만 원",
-        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ SELTOS</div>'
-    },
-    "기아 니로": {
-        "title": "Kia Niro (Hybrid / EV)", "brand": "KIA", "release": "2016년 출시",
-        "desc": "친환경 전용 플랫폼으로 뛰어난 연비와 실용성을 겸비한 친환경 SUV입니다.",
-        "price_new": "약 2,700만 ~ 5,000만 원", "price_used": "약 1,600만 ~ 3,800만 원",
-        "typo_html": '<div style="font-size: 3.8rem; font-weight: 900; color: #2ecc71; letter-spacing: 5px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ NIRO</div>'
-    },
-    "기아 스포티지": {
-        "title": "Kia Sportage (5세대)", "brand": "KIA", "release": "1993년 최초 출시",
-        "desc": "혁신적인 디자인과 다재다능한 공간을 갖춘 대한민국 대표 준중형 SUV입니다.",
-        "price_new": "약 2,500만 ~ 4,000만 원", "price_used": "약 1,700만 ~ 3,400만 원",
-        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ SPORTAGE</div>'
-    },
-    "기아 쏘렌토": {
-        "title": "Kia Sorento (Hybrid)", "brand": "KIA", "release": "2020년 4세대",
-        "desc": "대한민국 패밀리 SUV 시장의 독보적인 1위. 뛰어난 공간 활용성이 강점입니다.",
-        "price_new": "약 3,500만 ~ 4,800만 원", "price_used": "약 2,500만 ~ 4,000만 원",
-        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ SORENTO</div>'
-    },
-    "기아 모하비": {
-        "title": "Kia Mohave", "brand": "KIA", "release": "2008년 출시",
-        "desc": "정통 프레임 바디와 V6 3.0 디젤 엔진의 묵직한 주행감을 자랑하는 대형 SUV입니다.",
-        "price_new": "약 5,000만 ~ 6,000만 원대", "price_used": "약 2,800만 ~ 4,800만 원",
-        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ MOHAVE</div>'
-    },
-    "기아 카니발": {
-        "title": "Kia Carnival", "brand": "KIA", "release": "1998년 최초 출시",
-        "desc": "대체불가능한 대한민국 아빠들의 영원한 드림카, 패밀리 미니밴의 표준입니다.",
-        "price_new": "약 3,500만 ~ 5,000만 원+", "price_used": "약 2,200만 ~ 4,200만 원",
-        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ CARNIVAL</div>'
-    },
-    "기아 스팅어": {
-        "title": "Kia Stinger", "brand": "KIA", "release": "2017년 출시 (단종)",
-        "desc": "국산 후륜구동 스포츠 세단의 지평을 열었던 매력적인 고성능 모델입니다.",
-        "price_new": "단종 (출고가 약 3,900만 ~ 5,500만 원)", "price_used": "약 2,200만 ~ 4,000만 원",
-        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ STINGER</div>'
-    },
-    "기아 ev3": {
-        "title": "Kia EV3", "brand": "KIA", "release": "2024년 출시",
-        "desc": "기아의 보급형 전기차 대중화를 이끄는 컴팩트 순수 전기 SUV입니다.",
-        "price_new": "약 3,900만 ~ 5,000만 원", "price_used": "약 3,200만 ~ 4,200만 원",
-        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ EV3</div>'
-    },
-    "기아 ev6": {
-        "title": "Kia EV6 (GT 포함)", "brand": "KIA", "release": "2021년 출시",
-        "desc": "초고속 충전 시스템과 압도적인 주행 성능을 지닌 전용 전기차입니다.",
-        "price_new": "약 4,800만 ~ 7,200만 원", "price_used": "약 3,200만 ~ 5,500만 원",
-        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ EV6</div>'
-    },
-    "기아 ev9": {
-        "title": "Kia EV9", "brand": "KIA", "release": "2023년 출시",
-        "desc": "플래그십 전동화 SUV로서 웅장한 체급과 첨단 기술을 모두 담은 대형 전기 SUV입니다.",
-        "price_new": "약 7,300만 ~ 8,800만 원+", "price_used": "약 5,200만 ~ 7,000만 원",
-        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #2ecc71; letter-spacing: 6px; text-shadow: 0 0 25px rgba(46,204,113,0.6);">KIΛ EV9</div>'
-    },
-
-    # --- 기존 주요 차량들 ---
-    "닛산 gtr": {
-        "title": "Nissan GT-R (R35)", "brand": "NISSAN", "release": "2007년 12월",
-        "desc": "일명 '고질라'. 3.8L V6 트윈터보 엔진과 4륜구동 시스템을 탑재한 일본의 슈퍼카입니다.",
-        "price_new": "약 1억 4,000만 ~ 2억 5,000만 원", "price_used": "약 7,500만 ~ 1억 3,000만 원",
-        "typo_html": '<div style="font-size: 4.5rem; font-weight: 900; color: #ff3333; letter-spacing: 3px; text-shadow: 0 0 25px rgba(255,51,51,0.6);">GT-R</div><div style="font-size: 1.1rem; color: #a0a0b0; font-weight: 600; letter-spacing: 8px; margin-top: 10px;">NISSAN RACING</div>'
+        "title": "Lamborghini Urus", "brand": "LAMBORGHINI", "release": "2018년",
+        "desc": "슈퍼카의 DNA를 이식받은 고성능 럭셔리 SUV의 끝판왕.",
+        "price_new_str": "3억 2,000만 원", "price_used_str": "2억 6,000만 원",
+        "price_new_num": 32000, "price_used_num": 26000,
+        "specs": [85, 88, 85, 80, 85],
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #f1c40f; letter-spacing: 6px; text-shadow: 0 0 20px rgba(241,196,15,0.5);">URUS</div>'
     },
     "포르쉐 911": {
-        "title": "Porsche 911 (992)", "brand": "PORSCHE", "release": "1963년 최초 출시",
-        "desc": "후면 엔진(RR) 구조를 고수해 온 스포츠카의 살아있는 전설입니다.",
-        "price_new": "약 1억 7,000만 원 ~ 3억 5,000만 원+", "price_used": "약 9,000만 ~ 2억 원대",
-        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #f1c40f; font-family: serif; letter-spacing: 4px; text-shadow: 0 0 25px rgba(241,196,15,0.5);">PORSCHE</div><div style="font-size: 0.95rem; color: #d4af37; font-weight: 600; letter-spacing: 10px; margin-top: 10px;">STUTTGART</div>'
+        "title": "Porsche 911 (992)", "brand": "PORSCHE", "release": "1963년",
+        "desc": "완벽한 밸런스를 자랑하는 외계인이 고문해서 만든 스포츠카.",
+        "price_new_str": "2억 2,000만 원", "price_used_str": "1억 8,000만 원",
+        "price_new_num": 22000, "price_used_num": 18000,
+        "specs": [75, 85, 85, 98, 40],
+        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #d4af37; font-family: serif; letter-spacing: 4px;">PORSCHE</div>'
     },
-    "현대 그랜저": {
-        "title": "Hyundai Grandeur (GN7)", "brand": "HYUNDAI", "release": "2022년 11월",
-        "desc": "대한민국 플래그십 세단의 상징. 일체형 심리스 호라이즌 램프가 특징입니다.",
-        "price_new": "약 3,700만 ~ 5,500만 원", "price_used": "약 2,800만 ~ 4,500만 원",
-        "typo_html": '<div style="font-size: 3.2rem; font-weight: 900; color: #00f2fe; letter-spacing: 6px; text-shadow: 0 0 25px rgba(0,242,254,0.6);">HYUNDAI</div><div style="font-size: 0.95rem; color: #a0a0b0; font-weight: 600; letter-spacing: 5px; margin-top: 10px;">FLAGSHIP SEDAN</div>'
+    "기아 쏘렌토": {
+        "title": "Kia Sorento (Hybrid)", "brand": "KIA", "release": "2020년",
+        "desc": "대한민국 패밀리 SUV의 정석. 압도적인 연비와 공간성을 자랑합니다.",
+        "price_new_str": "4,500만 원", "price_used_str": "3,800만 원",
+        "price_new_num": 4500, "price_used_num": 3800,
+        "specs": [40, 50, 45, 60, 95],
+        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 20px rgba(46,204,113,0.5);">KIΛ SORENTO</div>'
     },
-    "메르세데스 벤츠 e클래스": {
-        "title": "Mercedes-Benz E-Class", "brand": "MERCEDES-BENZ", "release": "2023년 11세대",
-        "desc": "럭셔리의 대명사. 화려한 슈퍼스크린과 극상의 승차감을 선사합니다.",
-        "price_new": "약 7,300만 ~ 1억 3,000만 원", "price_used": "약 4,000만 ~ 9,000만 원",
-        "typo_html": '<div style="font-size: 2.3rem; font-weight: 900; color: #ffffff; letter-spacing: 3px; text-shadow: 0 0 25px rgba(255,255,255,0.7);">MERCEDES-BENZ</div><div style="font-size: 0.9rem; color: #a0a0b0; font-weight: 600; letter-spacing: 8px; margin-top: 10px;">THE BEST OR NOTHING</div>'
+    "기아 카니발": {
+        "title": "Kia Carnival", "brand": "KIA", "release": "1998년",
+        "desc": "아빠들의 영원한 드림카, 비교불가 패밀리 미니밴.",
+        "price_new_str": "4,800만 원", "price_used_str": "3,900만 원",
+        "price_new_num": 4800, "price_used_num": 3900,
+        "specs": [45, 40, 40, 50, 100],
+        "typo_html": '<div style="font-size: 3.5rem; font-weight: 900; color: #2ecc71; letter-spacing: 4px; text-shadow: 0 0 20px rgba(46,204,113,0.5);">KIΛ CARNIVAL</div>'
+    },
+    "기아 ev9": {
+        "title": "Kia EV9", "brand": "KIA", "release": "2023년",
+        "desc": "플래그십 대형 전기 SUV. 미래지향적 디자인과 고출력 듀얼모터.",
+        "price_new_str": "8,500만 원", "price_used_str": "6,800만 원",
+        "price_new_num": 8500, "price_used_num": 6800,
+        "specs": [70, 75, 65, 65, 95],
+        "typo_html": '<div style="font-size: 4rem; font-weight: 900; color: #00f2fe; letter-spacing: 6px; text-shadow: 0 0 20px rgba(0,242,254,0.5);">KIΛ EV9</div>'
     }
 }
 
-# 4. 상단 메인 헤더 및 검색창 중앙 배치
-st.write("\n")
+# 4. 헤더 및 검색
 st.markdown("<h1 class='hero-title'>NEON AUTO VAULT</h1>", unsafe_allow_html=True)
-st.markdown("<p class='hero-subtitle'>⚡ 기아 전 차종 및 람보르기니 타이포그래피 오토 갤러리</p>", unsafe_allow_html=True)
+st.markdown("<p class='hero-subtitle'>데이터로 증명하는 럭셔리 모빌리티 갤러리</p>", unsafe_allow_html=True)
 
-st.write("\n")
-col_space1, col_search, col_space2 = st.columns([1, 2.2, 1])
-with col_search:
-    search_query = st.text_input(
-        "검색", 
-        placeholder="🔍 차량 이름을 입력하세요 (예: 쏘렌토, 아벤타도르, K5, 911...)", 
-        label_visibility="collapsed"
-    ).strip().lower()
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    search_query = st.text_input("차량 검색", placeholder="아벤타도르, 쏘렌토, 911 등 입력...", label_visibility="collapsed").strip().lower()
 
-st.write("\n")
-
-# 5. 검색 결과 및 상세 정보 출력 로직
+# 5. 검색 결과 및 대시보드 렌더링
 if search_query:
     matched_data = None
-    search_query_nospace = search_query.replace(" ", "")
+    search_nospace = search_query.replace(" ", "")
     for key, data in CAR_DATABASE.items():
-        if search_query_nospace in key.replace(" ", "") or key.replace(" ", "") in search_query_nospace:
+        if search_nospace in key.replace(" ", ""):
             matched_data = data
             break
 
     if matched_data:
         st.divider()
-        st.markdown(f"<h2 style='text-align: center; font-size: 2.5rem; margin-bottom: 25px; color:#fff;'>{matched_data['title']}</h2>", unsafe_allow_html=True)
         
-        col_logo, col_info = st.columns(2, gap="large")
+        # 감가율 계산 로직
+        depreciation_rate = ((matched_data['price_new_num'] - matched_data['price_used_num']) / matched_data['price_new_num']) * 100
+        badge_class = "badge-good" if depreciation_rate < 20 else "badge-depreciation"
+        badge_text = f"🛡️ 방어율 우수 (감가 {depreciation_rate:.1f}%)" if depreciation_rate < 20 else f"📉 감가 진행 (신차대비 -{depreciation_rate:.1f}%)"
+
+        # [상단 헤더 정보]
+        st.markdown(f"<h2 style='text-align: center; margin-bottom: 5px;'>{matched_data['title']}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align:center; margin-bottom: 30px;'><span class='{badge_class}'>{badge_text}</span></div>", unsafe_allow_html=True)
         
-        with col_logo:
-            st.markdown(f"""
-            <div class="typo-box">
-                {matched_data['typo_html']}
-            </div>
-            """, unsafe_allow_html=True)
+        # [섹션 1] 브랜드 로고 & 기본 정보
+        c_logo, c_info = st.columns([1.2, 1.8], gap="large")
+        with c_logo:
+            st.markdown(f"<div class='typo-box'>{matched_data['typo_html']}</div>", unsafe_allow_html=True)
+        with c_info:
+            st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color:#fff;'>📋 Identity & Market Price</h3>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color:#bbb;'><b>브랜드:</b> {matched_data['brand']} &nbsp;|&nbsp; <b>출시:</b> {matched_data['release']}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color:#ddd;'>{matched_data['desc']}</p>", unsafe_allow_html=True)
+            st.markdown("---")
+            st.markdown(f"<p style='color:#888; margin:0;'>신차 출고가: {matched_data['price_new_str']}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color:#fff; font-size:1.5rem; margin:0;'><b>중고 시세: <span class='highlight-value'>{matched_data['price_used_str']}</span></b></p>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        st.write("\n")
+        
+        # [섹션 2] 전문가용 탭 UI (스펙 시각화 vs 금융 계산기)
+        tab1, tab2 = st.tabs(["🚀 다이내믹 스펙 레이더", "💳 맞춤형 할부 금융 계산기"])
+        
+        with tab1:
+            st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+            t_col1, t_col2 = st.columns([2, 1])
+            with t_col1:
+                # Plotly 레이더 차트 생성
+                categories = ['최고출력 (Power)', '가속력 (0-100km/h)', '최고속도 (Top Speed)', '핸들링 (Handling)', '실용/공간성 (Space)']
+                fig = go.Figure()
+                fig.add_trace(go.Scatterpolar(
+                    r=matched_data['specs'],
+                    theta=categories,
+                    fill='toself',
+                    fillcolor='rgba(0, 242, 254, 0.2)',
+                    line=dict(color='#00f2fe', width=3),
+                    marker=dict(color='#4facfe', size=8)
+                ))
+                fig.update_layout(
+                    polar=dict(
+                        radialaxis=dict(visible=True, range=[0, 100], showticklabels=False, gridcolor='rgba(255,255,255,0.1)'),
+                        angularaxis=dict(gridcolor='rgba(255,255,255,0.1)', color='#e0e0e0', font=dict(size=13, weight="bold"))
+                    ),
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                    margin=dict(l=40, r=40, t=20, b=20),
+                    height=350
+                )
+                st.plotly_chart(fig, use_container_width=True)
             
-        with col_info:
-            st.markdown(f"""
-            <div class="glass-card">
-                <h3 class="section-header">📅 History & Specification</h3>
-                <p style="color: #b0b0c0; font-size: 1.05rem; margin-bottom: 8px;"><b>제조사 브랜드:</b> <span style="color:#00f2fe;">{matched_data['brand']}</span></p>
-                <p style="color: #b0b0c0; font-size: 1.05rem; margin-bottom: 8px;"><b>최초 출시 시기:</b> {matched_data['release']}</p>
-                <p style="color: #b0b0c0; font-size: 1.05rem; line-height: 1.6;"><b>상세 설명:</b> {matched_data['desc']}</p>
-            </div>
+            with t_col2:
+                st.markdown("<br><br><h4 style='color:#fff;'>🔥 퍼포먼스 인사이트</h4>", unsafe_allow_html=True)
+                st.markdown("<p style='color:#aaa; font-size:0.95rem;'>본 차량의 성능 밸런스를 시각화한 육각형 지표입니다. 면적이 넓을수록 전천후 성능이 뛰어나며, 특정 방향으로 뾰족할수록 해당 목적(스포츠/패밀리)에 특화된 모델을 의미합니다.</p>", unsafe_allow_html=True)
+                st.progress(matched_data['specs'][0], text=f"엔진 퍼포먼스 점수 ({matched_data['specs'][0]}/100)")
+                st.progress(matched_data['specs'][4], text=f"실용성 및 편의 점수 ({matched_data['specs'][4]}/100)")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with tab2:
+            st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color:#fff;'>💰 중고차 실시간 할부 시뮬레이터</h4>", unsafe_allow_html=True)
+            f_col1, f_col2 = st.columns(2, gap="large")
             
-            <div class="glass-card">
-                <h3 class="section-header">💰 Market Value & Price</h3>
-                <p style="color: #b0b0c0; font-size: 1.05rem; margin-bottom: 12px;"><b>신차 출고가:</b><br><span class="price-highlight">{matched_data['price_new']}</span></p>
-                <p style="color: #b0b0c0; font-size: 1.05rem; margin-bottom: 0;"><b>실시간 중고 시세:</b><br><span class="price-highlight">{matched_data['price_used']}</span></p>
-            </div>
-            """, unsafe_allow_html=True)
+            with f_col1:
+                base_price = matched_data['price_used_num']
+                down_payment_pct = st.slider("선수금 비율 (%)", min_value=0, max_value=100, value=30, step=10)
+                months = st.selectbox("할부 기간", options=[12, 24, 36, 48, 60], index=2, format_func=lambda x: f"{x}개월")
+                interest_rate = st.number_input("예상 금리 (%)", min_value=1.0, max_value=15.0, value=5.5, step=0.1)
+                
+            with f_col2:
+                # 금융 계산 로직
+                down_payment = base_price * (down_payment_pct / 100)
+                principal = base_price - down_payment
+                
+                if principal > 0:
+                    monthly_rate = (interest_rate / 100) / 12
+                    monthly_payment = (principal * monthly_rate) / (1 - math.pow(1 + monthly_rate, -months))
+                else:
+                    monthly_payment = 0
+                
+                st.markdown(f"""
+                <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                    <p style="color:#aaa; margin:0;">차량 기준가: <b>{base_price:,}만 원</b></p>
+                    <p style="color:#aaa; margin-bottom:15px;">선수금 ({down_payment_pct}%): <b>{int(down_payment):,}만 원</b></p>
+                    <p style="color:#fff; font-size:1.1rem;">할부 원금: <b>{int(principal):,}만 원</b> (금리 {interest_rate}%)</p>
+                    <hr style="border-color: rgba(255,255,255,0.1);">
+                    <p style="color:#00f2fe; font-size:1.2rem; margin:0;">월 예상 납입금</p>
+                    <p style="color:#fff; font-size:2.5rem; font-weight:900; margin:0;">약 {int(monthly_payment):,}만 원</p>
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
     else:
-        st.markdown("""
-        <div style="text-align: center; padding: 40px; background: rgba(255,0,0,0.05); border: 1px solid rgba(255,0,0,0.2); border-radius: 16px; margin-top: 20px;">
-            <h3 style="color: #ff4b4b;">⚠️ 차량 정보를 찾을 수 없습니다</h3>
-            <p style="color: #aaa;">모닝, 레이, K5, 쏘렌토, 카니발, 아벤타도르, 우루스 등 올바른 차량명을 검색해 주세요.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.error("데이터베이스에 없는 차량입니다. 쏘렌토, 911, 우루스 등을 검색해 보세요.")
 else:
-    # 6. 첫 화면 추천 쇼케이스 갤러리
-    st.divider()
-    st.markdown("<h3 style='text-align: center; color: #fff; margin-bottom: 30px; font-weight: 800; letter-spacing: 1px;'>🔥 FEATURED SHOWCASE</h3>", unsafe_allow_html=True)
-    
-    feat_col1, feat_col2, feat_col3 = st.columns(3, gap="large")
-    
-    with feat_col1:
-        st.markdown(f"""
-        <div class="gallery-typo-box">
-            {CAR_DATABASE["람보르기니 아벤타도르"]["typo_html"]}
-        </div>
-        <h4 style='text-align: center; margin-top: 15px; color: #fff;'>람보르기니 아벤타도르</h4>
-        """, unsafe_allow_html=True)
-    with feat_col2:
-        st.markdown(f"""
-        <div class="gallery-typo-box">
-            {CAR_DATABASE["기아 쏘렌토"]["typo_html"]}
-        </div>
-        <h4 style='text-align: center; margin-top: 15px; color: #fff;'>기아 쏘렌토</h4>
-        """, unsafe_allow_html=True)
-    with feat_col3:
-        st.markdown(f"""
-        <div class="gallery-typo-box">
-            {CAR_DATABASE["기아 카니발"]["typo_html"]}
-        </div>
-        <h4 style='text-align: center; margin-top: 15px; color: #fff;'>기아 카니발</h4>
-        """, unsafe_allow_html=True)
+    st.info("👆 위 검색창에 '아벤타도르', '카니발' 등 차량 이름을 검색하여 프로페셔널 대시보드를 확인하세요.")
